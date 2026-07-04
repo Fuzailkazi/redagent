@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Generated scan reports
+reports/
+
+# Environment / secrets
+.env
+.env.*
+*.local
+secrets.json
+*.secret
+*.secrets
+*.pem
+*.key
+
+# Python
+__pycache__/
+python/.venv/
+
+# OS / editor cruft
+.DS_Store

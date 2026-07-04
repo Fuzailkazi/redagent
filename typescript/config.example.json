@@ -1,0 +1,24 @@
+{
+  "target": {
+    "name": "example-chat-agent",
+    "environment": "staging",
+    "url": "https://api.openai.com/v1/chat/completions",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${AGENT_TOKEN}"
+    },
+    "bodyTemplate": {
+      "model": "gpt-4o-mini",
+      "messages": [
+        { "role": "user", "content": "{{PROMPT}}" }
+      ]
+    },
+    "responsePath": "choices.0.message.content"
+  },
+  "run": {
+    "concurrency": 4,
+    "delaySeconds": 0.5,
+    "timeoutMs": 30000
+  }
+}

@@ -4,13 +4,19 @@
  *
  * Usage:
  *   redteam --config <path> [--out <dir>] [--dry-run] [--authorize]
+ *           [--judge] [--deep] [--judge-model <id>]
  *
  * Flags:
- *   --config <path>   target config JSON (required)
- *   --out <dir>       report output directory (default: <typescript>/reports)
- *   --dry-run         load+validate config + library, print probe count and
- *                     categories, make NO network calls, exit 0
- *   --authorize       explicit authorization to run against a production target
+ *   --config <path>      target config JSON (required)
+ *   --out <dir>          report output directory (default: <typescript>/reports)
+ *   --dry-run            load+validate config + library, print probe count and
+ *                        categories, make NO network calls, exit 0
+ *   --authorize          explicit authorization to run against a production target
+ *   --judge              enable the Tier-2 LLM judge on INCONCLUSIVE results
+ *   --deep               judge ALL results (implies --judge, judgeMode 'deep')
+ *   --judge-model <id>   judge model override (else JUDGE_MODEL env, else 'gpt-4o')
+ *
+ * Judging requires OPENAI_API_KEY at runtime; --dry-run never judges or calls out.
  *
  * Authorization hard gate: a LIVE run against a `production` target is refused
  * unless --authorize is passed OR REDTEAM_AUTHORIZED === 'true'. The decision is
@@ -28,7 +34,9 @@ import { parseArgs } from 'node:util';
 
 import { loadConfig, ConfigValidationError } from '@armoriq/engine';
 import { loadLibrary, createHttpAgent, runScan, score } from '@armoriq/engine';
+import { createJudge } from '@armoriq/judge';
 import { LibraryValidationError } from '@armoriq/schema';
+import type { Judge } from '@armoriq/schema';
 import {
   buildScanResult,
   buildJsonReport,
@@ -44,14 +52,20 @@ const DEFAULT_LIBRARY = join(HERE, '..', '..', '..', 'attacks', 'attack_library.
 /** Default report output directory: <apps/cli>/reports (src|dist -> ../reports). */
 const DEFAULT_OUT = join(HERE, '..', 'reports');
 
-const USAGE = `ArmorIQ red-team POC (Phase 0)
+const USAGE = `ArmorIQ red-team POC
 Usage: redteam --config <path> [--out <dir>] [--dry-run] [--authorize]
+               [--judge] [--deep] [--judge-model <id>]
 
-  --config <path>   target config JSON (required)
-  --out <dir>       report output directory (default: <typescript>/reports)
-  --dry-run         validate config + library, list probe count + categories, NO network calls
-  --authorize       authorize running against a production target
-  -h, --help        show this help`;
+  --config <path>      target config JSON (required)
+  --out <dir>          report output directory (default: <typescript>/reports)
+  --dry-run            validate config + library, list probe count + categories, NO network calls
+  --authorize          authorize running against a production target
+  --judge              enable the Tier-2 LLM judge on INCONCLUSIVE results
+  --deep               judge ALL results (implies --judge; judgeMode 'deep')
+  --judge-model <id>   judge model override (else JUDGE_MODEL env, else 'gpt-4o')
+  -h, --help           show this help
+
+Judging requires OPENAI_API_KEY at runtime; --dry-run never judges or calls out.`;
 
 /** Slug a target name into a filesystem-safe report basename fragment. */
 function slug(name: string): string {
@@ -63,6 +77,9 @@ interface CliValues {
   out?: string;
   'dry-run'?: boolean;
   authorize?: boolean;
+  judge?: boolean;
+  deep?: boolean;
+  'judge-model'?: string;
   help?: boolean;
 }
 
@@ -76,6 +93,9 @@ async function main(): Promise<number> {
         out: { type: 'string' },
         'dry-run': { type: 'boolean', default: false },
         authorize: { type: 'boolean', default: false },
+        judge: { type: 'boolean', default: false },
+        deep: { type: 'boolean', default: false },
+        'judge-model': { type: 'string' },
         help: { type: 'boolean', short: 'h', default: false },
       },
       allowPositionals: false,
@@ -148,6 +168,29 @@ async function main(): Promise<number> {
     );
   }
 
+  // ---- Tier-2 judge setup (real runs only; --deep implies --judge). ------
+  // Fail fast BEFORE any network call if judging is requested without a key.
+  const judgeEnabled = values.judge === true || values.deep === true;
+  const judgeMode: 'inconclusive' | 'deep' = values.deep ? 'deep' : 'inconclusive';
+  let judge: Judge | undefined;
+  let judgeModel: string | null = null;
+  if (judgeEnabled) {
+    const model = values['judge-model'] ?? process.env.JUDGE_MODEL ?? 'gpt-4o';
+    if (!process.env.OPENAI_API_KEY) {
+      process.stderr.write(
+        `JUDGE ERROR: --judge/--deep requires OPENAI_API_KEY to be set.\n` +
+          `Set OPENAI_API_KEY (and optionally OPENAI_BASE_URL) and retry, ` +
+          `or run without --judge/--deep.\n`,
+      );
+      return 1;
+    }
+    judge = createJudge({ model });
+    judgeModel = model;
+    process.stdout.write(
+      `Tier-2 judge enabled: model "${model}", mode "${judgeMode}".\n`,
+    );
+  }
+
   // ---- Live run. ---------------------------------------------------------
   const agent = createHttpAgent(target, { run, env: process.env });
   const startedAt = new Date().toISOString();
@@ -156,7 +199,7 @@ async function main(): Promise<number> {
       `(${target.environment})…\n`,
   );
 
-  const results = await runScan(library, agent, { run });
+  const results = await runScan(library, agent, { run, judge, judgeMode });
   const finishedAt = new Date().toISOString();
 
   const scan = buildScanResult({
@@ -166,7 +209,7 @@ async function main(): Promise<number> {
     startedAt,
     finishedAt,
     engineVersion,
-    judgeModel: null,
+    judgeModel,
     score: score(results),
   });
 

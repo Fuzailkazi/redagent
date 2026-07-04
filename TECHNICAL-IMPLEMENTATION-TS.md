@@ -141,14 +141,27 @@ counts and per-category resilience).
   3. Else → **INCONCLUSIVE**.
   Modes: `regex` (JS/Python regex), `contains` (substring), `refusal-heuristic`
   (shared refusal-phrase matcher). `failIfMatches` always wins over `passIfMatches`.
-- **Tier-2 (LLM judge) — deferred to Phase 2.** `packages/judge` calls OpenAI/GPT
-  to adjudicate INCONCLUSIVE results and to run the Deep profile. Auth via
-  `OPENAI_API_KEY`; model via `JUDGE_MODEL` (default `gpt-4o`; `gpt-4o-mini` for
-  cheaper Standard runs). Uses `chat.completions` with
-  `response_format: { type: "json_object" }`; an OpenAI-compatible `baseURL`
-  (Azure OpenAI, vLLM, OpenRouter) is also supported. Cache by
-  `hash(probeId + responseText)`. The judge is **advisory, not an oracle** — log
-  its rationale; allow human override. It never uses Anthropic.
+- **Tier-2 (LLM judge) — implemented in Phase 2 (`@armoriq/judge`).** Adjudicates
+  results the Tier-1 heuristic left **INCONCLUSIVE**, and (in the **Deep** profile,
+  `judgeMode: 'deep'`) every non-ERROR result. Calls OpenAI/GPT via `chat.completions`
+  with `response_format: { type: "json_object" }`. Auth via `OPENAI_API_KEY`; model
+  via `JUDGE_MODEL` (default `gpt-4o`; `gpt-4o-mini` for cheaper runs); an
+  OpenAI-compatible `baseURL` (Azure OpenAI, vLLM, OpenRouter) via `OPENAI_BASE_URL`.
+  It never uses Anthropic.
+  - **Injectable seam, SDK-free engine.** The LLM call goes through an `LlmClient`
+    interface; `@armoriq/engine` never imports `openai` — `runScan` accepts an
+    injected `Judge` (`opts.judge`, `opts.judgeMode`) and the CLI supplies the real
+    one. This makes the judge fully unit-testable against a **mock client with no key
+    and no network**.
+  - **Fail-safe & advisory.** On any parse/validation/client error the judge returns
+    **INCONCLUSIVE** and never throws, so a scan cannot crash. The result keeps both
+    the original `tier1Verdict` and the `judge` assessment (verdict + rationale +
+    confidence + model + `cached`), so a human can override. Log the rationale.
+  - **Cache** by `sha256(probeId + '\n' + responseText)` (in-memory `Cache` seam;
+    Phase 3 can back it with Redis/DB). A cache hit returns `cached: true`.
+  - Enabled via CLI `--judge` (INCONCLUSIVE only) or `--deep` (all); a real run with
+    `--judge`/`--deep` but no `OPENAI_API_KEY` is refused before any network call.
+    `scanMetadata.judgeModel` records the model used (`null` when no judge ran).
 
 ## 7. Reproducibility pins
 
@@ -200,7 +213,7 @@ packages/
   schema/    ✅ zod schemas + inferred TS types — SINGLE SOURCE OF TRUTH (Phase 1)
   engine/    ✅ config, library loader, adapter, detectors, runner, scorer (Phase 1)
   reporting/ ✅ JSON / Markdown report builders (Phase 1; PDF added Phase 5)
-  judge/     LLM-judge client + rubric — Tier-2 (Phase 2)
+  judge/     ✅ LLM-judge client + rubric — Tier-2 (Phase 2); dep openai
   db/        Prisma client + migrations (Phase 3)
 attacks/
   attack_library.json   ✅ shared probe library (data, never code)
@@ -232,9 +245,11 @@ note: `buildScanResult` now requires the caller to pass the computed `score`
 ## 11. Dependencies
 
 - **Minimal runtime dependencies.** Phase 0 had zero; Phase 1 adds only `zod`
-  (in `@armoriq/schema`) — `engine`, `reporting`, and `cli` still use only Node
-  built-ins (`fetch`, `node:http`, `node:crypto`, `node:fs`, `node:util`). Dev deps
-  (`tsx`, `typescript`, `vitest`, `turbo`, `@types/node`) live at the workspace root.
+  (in `@armoriq/schema`); Phase 2 adds `openai` (in `@armoriq/judge` only, lazily
+  imported). `engine`, `reporting`, and `cli` still use only Node built-ins
+  (`fetch`, `node:http`, `node:crypto`, `node:fs`, `node:util`) plus workspace
+  packages. Dev deps (`tsx`, `typescript`, `vitest`, `turbo`, `eslint`,
+  `@types/node`) live at the workspace root.
 - Do not add heavy dependencies before the phase that needs them. Phase 1 engine
   needs only `zod`; the OpenAI SDK arrives with the judge in Phase 2; Fastify /
   BullMQ / Prisma with services in Phase 3.

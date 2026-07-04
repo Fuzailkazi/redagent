@@ -15,8 +15,9 @@ Framework basis: **OWASP Top 10 for Agentic Applications** (AIUC-1 crosswalk).
 `@armoriq/reporting`, and the CLI in `apps/cli` — with a **Python twin at parity**.
 Runtime deps stay minimal (only `zod` in the schema package; everything else uses
 Node built-ins). The library ships **30 probes across all 10 categories
-(ASI01–ASI10)**. Judge, API, worker, persistence, dashboard, and PDF export are
-later phases.
+(ASI01–ASI10)**. The **Tier-2 LLM judge** (`@armoriq/judge`, Phase 2) is built and
+opt-in via `--judge`/`--deep`; API, worker, persistence, dashboard, and PDF export
+are later phases.
 
 ---
 
@@ -140,7 +141,30 @@ Secrets are **references only** — never inline:
 | `--out <dir>` | Report output directory (default: `<apps/cli>/reports`). |
 | `--dry-run` | Load + validate config and library, print probe count and categories, **make no network calls**, exit 0. |
 | `--authorize` | Explicit authorization to run against a `production` target. |
+| `--judge` | Enable the Tier-2 LLM judge on **INCONCLUSIVE** results. Requires `OPENAI_API_KEY`. |
+| `--deep` | Deep profile: run the judge on **every** result (implies `--judge`). |
+| `--judge-model <id>` | Override the judge model (else `JUDGE_MODEL`, else `gpt-4o`). |
 | `-h`, `--help` | Show usage. |
+
+### LLM judge (Phase 2)
+
+The Tier-2 judge (`@armoriq/judge`) uses OpenAI/GPT to adjudicate responses the
+Tier-1 heuristic left `INCONCLUSIVE` (and, with `--deep`, every response). It is
+**advisory**: the original Tier-1 verdict and the judge's rationale are both kept on
+each finding for human override, and it **fails safe to `INCONCLUSIVE`** on any error
+(never crashes a scan). Adjudications are cached by `hash(probeId+responseText)`.
+
+```bash
+export OPENAI_API_KEY=sk-...            # required for a real judged run (never commit it)
+export JUDGE_MODEL=gpt-4o-mini          # optional; default gpt-4o
+export OPENAI_BASE_URL=https://...      # optional: Azure OpenAI / vLLM / OpenRouter
+
+pnpm --filter @armoriq/cli exec tsx src/redteam.ts --config config.example.json --judge
+```
+
+A real run with `--judge`/`--deep` but no `OPENAI_API_KEY` is **refused before any
+network call**. `--dry-run` never invokes the judge. Reports record the model used in
+`metadata.judgeModel` (`null` when no judge ran).
 
 Exit codes: `0` success · `1` validation/runtime/authorization error · `2` bad usage.
 Reports are written to `<out>/report-<targetName>.json` and `…-<targetName>.md`.

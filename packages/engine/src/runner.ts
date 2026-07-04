@@ -14,6 +14,7 @@ import { detect } from './detectors.js';
 import type {
   Agent,
   AttackLibrary,
+  Judge,
   Probe,
   ProbeResult,
   RunConfig,
@@ -22,13 +23,72 @@ import type {
 export interface RunScanOptions {
   run?: RunConfig;
   onResult?: (result: ProbeResult) => void;
+  /**
+   * Optional Tier-2 LLM judge. When set, adjudicates results per `judgeMode`.
+   * Advisory only: a throwing judge never crashes a scan and the Tier-1 verdict
+   * is preserved for human override.
+   */
+  judge?: Judge;
+  /**
+   * 'inconclusive' (default): only adjudicate Tier-1 INCONCLUSIVE results.
+   * 'deep': adjudicate every non-ERROR result (PASS/FAIL/INCONCLUSIVE).
+   */
+  judgeMode?: 'inconclusive' | 'deep';
 }
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Optionally run the Tier-2 judge over a computed Tier-1 result.
+ *
+ * The judge is advisory: it runs only for non-ERROR results, and only when
+ * `judgeMode === 'deep'` or the Tier-1 verdict is INCONCLUSIVE. On success we
+ * preserve the original Tier-1 verdict (`tier1Verdict`), attach the assessment,
+ * promote the judge's verdict to the effective `verdict`, and append its
+ * rationale to `reason`. A throwing judge leaves the Tier-1 verdict intact and
+ * records the error in `reason` — it must never crash a scan.
+ */
+async function adjudicate(
+  result: ProbeResult,
+  judge: Judge,
+  judgeMode: 'inconclusive' | 'deep',
+): Promise<ProbeResult> {
+  // Never adjudicate transport/send failures.
+  if (result.verdict === 'ERROR') return result;
+  if (judgeMode !== 'deep' && result.verdict !== 'INCONCLUSIVE') return result;
+
+  const tier1Verdict = result.verdict;
+  try {
+    const assessment = await judge.adjudicate({
+      probe: result.probe,
+      responseText: result.responseText,
+      tier1: { verdict: tier1Verdict, reason: result.reason },
+    });
+    return {
+      ...result,
+      tier1Verdict,
+      judge: assessment,
+      verdict: assessment.verdict,
+      reason: `${result.reason} [judge:${assessment.model}] ${assessment.rationale}`,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // Advisory failure: keep the Tier-1 verdict, note the error, do not throw.
+    return {
+      ...result,
+      reason: `${result.reason} [judge error: ${message}]`,
+    };
+  }
+}
+
 /** Run one probe, mapping any failure to an ERROR verdict (never PASS). */
-async function runProbe(probe: Probe, agent: Agent): Promise<ProbeResult> {
+async function runProbe(
+  probe: Probe,
+  agent: Agent,
+  judge?: Judge,
+  judgeMode: 'inconclusive' | 'deep' = 'inconclusive',
+): Promise<ProbeResult> {
   try {
     const response = await agent.send(probe.prompt);
 
@@ -45,13 +105,14 @@ async function runProbe(probe: Probe, agent: Agent): Promise<ProbeResult> {
     }
 
     const { verdict, reason } = detect(probe, response.responseText);
-    return {
+    const result: ProbeResult = {
       probe,
       responseText: response.responseText,
       verdict,
       reason,
       raw: response.raw,
     };
+    return judge ? adjudicate(result, judge, judgeMode) : result;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return {
@@ -96,7 +157,12 @@ export async function runScan(
         await sleep(delayMs);
       }
 
-      const result = await runProbe(probe, agent);
+      const result = await runProbe(
+        probe,
+        agent,
+        opts.judge,
+        opts.judgeMode ?? 'inconclusive',
+      );
       results[index] = result;
       opts.onResult?.(result);
     }

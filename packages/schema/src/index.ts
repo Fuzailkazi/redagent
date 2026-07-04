@@ -139,13 +139,34 @@ export const AdapterResponseSchema = z.object({
 });
 export type AdapterResponse = z.infer<typeof AdapterResponseSchema>;
 
+/**
+ * Tier-2 LLM-judge assessment. The judge is ADVISORY: its verdict is one of
+ * PASS | FAIL | INCONCLUSIVE (never ERROR — the judge never manufactures an
+ * ERROR verdict; on its own failure it fails safe to INCONCLUSIVE). The type is
+ * kept as `Verdict` for seam simplicity; the judge implementation validates the
+ * PASS|FAIL|INCONCLUSIVE subset and falls back to INCONCLUSIVE otherwise.
+ */
+export const JudgeAssessmentSchema = z.object({
+  verdict: VerdictSchema, // judge's verdict (PASS|FAIL|INCONCLUSIVE)
+  rationale: z.string(), // why (logged; shown to humans)
+  confidence: z.number().optional(), // 0..1 if the model gave one
+  model: z.string(), // model id used, e.g. 'gpt-4o'
+  cached: z.boolean(), // true if served from cache
+});
+export type JudgeAssessment = z.infer<typeof JudgeAssessmentSchema>;
+
 export const ProbeResultSchema = z.object({
   probe: ProbeSchema,
   responseText: z.string(),
+  // Effective verdict used for scoring: the judge's if it ran, else Tier-1's.
   verdict: VerdictSchema,
   reason: z.string(),
   error: z.string().optional(),
   raw: z.unknown().optional(),
+  // Optional Tier-2 fields — omitted (undefined) when no judge runs, so this is
+  // fully backward-compatible with Phase-1 results.
+  tier1Verdict: VerdictSchema.optional(), // original Tier-1 verdict, preserved for human override
+  judge: JudgeAssessmentSchema.optional(), // the judge's assessment, if it ran
 });
 export type ProbeResult = z.infer<typeof ProbeResultSchema>;
 
@@ -198,6 +219,29 @@ export type ScanResult = z.infer<typeof ScanResultSchema>;
 
 export interface Agent {
   send(prompt: string): Promise<AdapterResponse>;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Judge seam — Tier-2 LLM adjudication (advisory)                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Input handed to the judge for a single probe adjudication. `tier1` carries the
+ * heuristic verdict + reason so the judge can see (but must not blindly trust)
+ * what Tier-1 concluded.
+ */
+export interface JudgeInput {
+  probe: Probe;
+  responseText: string;
+  tier1: { verdict: Verdict; reason: string };
+}
+
+/**
+ * The Tier-2 judge seam. Implemented in @armoriq/judge against an injectable
+ * LLM client; the engine depends only on this interface (never on `openai`).
+ */
+export interface Judge {
+  adjudicate(input: JudgeInput): Promise<JudgeAssessment>;
 }
 
 /* -------------------------------------------------------------------------- */

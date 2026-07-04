@@ -7,6 +7,7 @@
   "include": ["src"],
   "references": [
     { "path": "../../packages/engine" },
+    { "path": "../../packages/judge" },
     { "path": "../../packages/reporting" },
     { "path": "../../packages/schema" }
   ]

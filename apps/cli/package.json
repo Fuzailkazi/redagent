@@ -1,0 +1,22 @@
+{
+  "name": "@armoriq/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "redteam": "./dist/redteam.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/redteam.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "dependencies": {
+    "@armoriq/engine": "workspace:*",
+    "@armoriq/reporting": "workspace:*",
+    "@armoriq/schema": "workspace:*"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@armoriq/redagent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "tsx": "^4.19",
+    "turbo": "^2.3",
+    "typescript": "^5.7",
+    "typescript-eslint": "^8.62.1",
+    "vitest": "^2.1"
+  }
+}

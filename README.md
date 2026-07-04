@@ -10,10 +10,13 @@ Framework basis: **OWASP Top 10 for Agentic Applications** (AIUC-1 crosswalk).
 - Project memory / conventions: [`CLAUDE.md`](./CLAUDE.md)
 - Probe library (source of truth): [`attacks/attack_library.json`](./attacks/attack_library.json)
 
-This is the **Phase 0 POC**: a zero-runtime-dependency CLI (TypeScript reference
-impl + a Python twin at parity) driven entirely by the shared attack library.
-The library ships **30 probes across all 10 categories (ASI01–ASI10)**. Judge,
-API, worker, persistence, dashboard, and PDF export are later phases.
+**Phase 1** has landed: the engine is now a **pnpm + turborepo monorepo** —
+`@armoriq/schema` (zod, the single source of truth), `@armoriq/engine`,
+`@armoriq/reporting`, and the CLI in `apps/cli` — with a **Python twin at parity**.
+Runtime deps stay minimal (only `zod` in the schema package; everything else uses
+Node built-ins). The library ships **30 probes across all 10 categories
+(ASI01–ASI10)**. Judge, API, worker, persistence, dashboard, and PDF export are
+later phases.
 
 ---
 
@@ -40,23 +43,29 @@ Two headline scores in every report:
 
 ## Run the POC today
 
-### TypeScript (reference implementation)
+### TypeScript (monorepo — pnpm + turborepo)
 
 ```bash
-cd typescript
-npm install
+# from the repo root
+pnpm install
+pnpm -r build          # build all packages (turbo)
 
 # Dry run: validate config + attack library and list probes — makes NO network calls
-npx tsx src/redteam.ts --config config.example.json --dry-run
+pnpm --filter @armoriq/cli exec tsx src/redteam.ts --config config.example.json --dry-run
 
 # Real scan: sends probes to the target and writes JSON + Markdown reports
-npx tsx src/redteam.ts --config config.example.json --out ./reports
+pnpm --filter @armoriq/cli exec tsx src/redteam.ts --config config.example.json --out ./reports
 ```
 
-The TypeScript engine has **zero runtime dependencies** (Node's built-in `fetch`,
-`node:crypto`, `node:fs`, `node:path`, `node:url`, `node:util`). Node **>=18** is
-required; the dev tooling (`tsx`, `typescript`, `vitest`, `@types/node`) is
-installed by `npm install`. Config is **JSON only** on the TS side.
+Packages: `@armoriq/schema` (zod schemas + inferred types — the single source of
+truth), `@armoriq/engine` (config, library loader, adapter, detectors, runner,
+scorer), `@armoriq/reporting` (JSON/Markdown report builders), and `@armoriq/cli`
+(`apps/cli`, the `redteam` bin). Only `@armoriq/schema` has a runtime dependency
+(`zod`); engine/reporting/CLI use Node built-ins only. Node **>=18** required; dev
+tooling (`tsx`, `typescript`, `vitest`, `turbo`, `@types/node`) installs at the
+root. Config is **JSON only** on the TS side. (`pnpm --filter @armoriq/cli dev`
+runs the CLI via `tsx` without a build; after `pnpm -r build` the `redteam` bin at
+`apps/cli/dist/redteam.js` is also runnable directly.)
 
 ### Python (parity twin)
 
@@ -79,10 +88,10 @@ library contract. If you change any of those, keep the two in sync.
 ## Run the tests
 
 ```bash
-# TypeScript (Vitest — 38 tests across detectors, adapter, runner, scorer, golden)
-cd typescript && npx vitest run
-#   npm test          # same thing
-#   npm run typecheck # tsc --noEmit
+# TypeScript (Vitest — 53 tests: schema 7, engine 38 incl. golden, reporting 8)
+pnpm -r test
+#   pnpm -r typecheck   # tsc --noEmit across packages
+#   pnpm -r build       # turbo build all packages
 
 # Python (pytest)
 cd python && pytest
@@ -128,7 +137,7 @@ Secrets are **references only** — never inline:
 | Flag | Meaning |
 |------|---------|
 | `--config <path>` | Target config (required). JSON on the TS side. |
-| `--out <dir>` | Report output directory (default: `<typescript>/reports`). |
+| `--out <dir>` | Report output directory (default: `<apps/cli>/reports`). |
 | `--dry-run` | Load + validate config and library, print probe count and categories, **make no network calls**, exit 0. |
 | `--authorize` | Explicit authorization to run against a `production` target. |
 | `-h`, `--help` | Show usage. |
@@ -152,8 +161,7 @@ Reports are written to `<out>/report-<targetName>.json` and `…-<targetName>.md
   embeds a secret.
 - **Reproducibility.** Every report pins
   `{ targetConfigHash, libraryVersion, engineVersion, judgeModel }`
-  (`judgeModel` is `null` in Phase 0; `engineVersion` is read from
-  `typescript/package.json`).
+  (`judgeModel` is `null` until the Phase 2 judge lands).
 
 ## Reports are sensitive and gitignored
 

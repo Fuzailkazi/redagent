@@ -184,29 +184,38 @@ unresolved, so the hash is stable and never embeds a secret.
   against a `production` target without explicit, logged sign-off — enforced in
   the API layer (Phase 3), not just the UI. Phase 0 only records `environment`.
 
-## 9. Target monorepo layout (build toward this)
+## 9. Monorepo layout (Phase 1 — DONE)
 
-pnpm + turborepo, Node 20 LTS · TypeScript 5 · ESM · Fastify · BullMQ+Redis ·
-Prisma+Postgres · zod · undici · vitest · OpenAI/GPT SDK · Playwright (PDF).
+pnpm + turborepo, Node 20 LTS (runs on 22) · TypeScript 5 · ESM · zod · vitest.
+Later: Fastify · BullMQ+Redis · Prisma+Postgres · undici · OpenAI/GPT SDK · Playwright (PDF).
+`✅` = exists today; others are the target for later phases.
 
 ```
 apps/
+  cli/       ✅ redteam CLI (bin "redteam"); deps engine+reporting+schema (Phase 1)
   api/       Fastify API: register targets, trigger/poll/fetch scans (Phase 3)
   worker/    BullMQ consumer that runs scan jobs (Phase 3–4)
   web/       Next.js dashboard (Phase 5)
 packages/
-  schema/    zod schemas + inferred TS types — SINGLE SOURCE OF TRUTH (Phase 1)
-  engine/    loader, adapter, detectors, runner, scorer (Phase 1)
+  schema/    ✅ zod schemas + inferred TS types — SINGLE SOURCE OF TRUTH (Phase 1)
+  engine/    ✅ config, library loader, adapter, detectors, runner, scorer (Phase 1)
+  reporting/ ✅ JSON / Markdown report builders (Phase 1; PDF added Phase 5)
   judge/     LLM-judge client + rubric — Tier-2 (Phase 2)
-  reporting/ JSON / Markdown / PDF report builders (Phase 1; PDF Phase 5)
   db/        Prisma client + migrations (Phase 3)
 attacks/
-  attack_library.json   shared probe library (data, never code)
+  attack_library.json   ✅ shared probe library (data, never code)
+python/                 ✅ standalone parity twin (redteam.py), unchanged by Phase 1
 ```
 
-Phase 0 collapses `engine` + `reporting` into the single file
-`typescript/src/redteam.ts` (with a `python/redteam.py` twin). Phase 1 is the
-mechanical lift into `packages/*`, guarded by the golden-agent smoke test.
+**Phase 0 → Phase 1 (done):** the original single-file `typescript/src/redteam.ts`
+POC has been refactored — with no behavior change, guarded by the golden-agent
+smoke test — into `@armoriq/schema` (zod, source of truth), `@armoriq/engine`,
+`@armoriq/reporting`, and `apps/cli`. The old `typescript/` package was retired
+(preserved in the `phase-0-poc` git branch). The Python twin is untouched: the
+library contract did not change, so parity holds. One behavior-preserving contract
+note: `buildScanResult` now requires the caller to pass the computed `score`
+(reporting no longer depends on the engine scorer); the CLI supplies
+`score(results)`, producing byte-identical reports.
 
 ## 10. Testing requirements
 
@@ -222,9 +231,10 @@ mechanical lift into `packages/*`, guarded by the golden-agent smoke test.
 
 ## 11. Dependencies
 
-- **Phase 0: zero runtime dependencies** — built-in `fetch`, `node:http`,
-  `node:crypto`. Dev deps only: `tsx`, `typescript`, `vitest`, `@types/node`
-  (already in `typescript/package.json`).
+- **Minimal runtime dependencies.** Phase 0 had zero; Phase 1 adds only `zod`
+  (in `@armoriq/schema`) — `engine`, `reporting`, and `cli` still use only Node
+  built-ins (`fetch`, `node:http`, `node:crypto`, `node:fs`, `node:util`). Dev deps
+  (`tsx`, `typescript`, `vitest`, `turbo`, `@types/node`) live at the workspace root.
 - Do not add heavy dependencies before the phase that needs them. Phase 1 engine
   needs only `zod`; the OpenAI SDK arrives with the judge in Phase 2; Fastify /
   BullMQ / Prisma with services in Phase 3.

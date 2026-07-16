@@ -112,6 +112,11 @@ export const TargetConfigSchema = z.object({
   headers: z.record(z.string()).optional(), // values may contain the literal ${ENV_VAR}
   bodyTemplate: z.unknown(), // JSON with the literal string "{{PROMPT}}" somewhere
   responsePath: z.string(), // dotted path w/ array indices, e.g. "choices.0.message.content"
+  // Response handling. 'json' (default) parses one JSON body and reads responsePath.
+  // 'sse' parses a Server-Sent Events stream, reading responsePath out of each
+  // matching event's `data` JSON and aggregating (auto delta/cumulative).
+  responseMode: z.enum(['json', 'sse']).optional(),
+  sseEvent: z.string().optional(), // SSE event name carrying the answer text (default 'content')
 });
 export type TargetConfig = z.infer<typeof TargetConfigSchema>;
 

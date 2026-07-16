@@ -23,9 +23,10 @@ Read these before implementing:
 ## Current state (starting point — do not discard)
 
 A working proof-of-concept already exists and is validated:
-- `typescript/src/redteam.ts` — zero-dependency Node ≥18 CLI (the reference impl).
-- `python/redteam.py` — Python CLI at parity (keep in sync; do not let it rot).
 - `attacks/attack_library.json` — shared, versioned, language-agnostic probes.
+
+The product is a single TypeScript/Node monorepo (`packages/*` + `apps/*`). There is
+no Python component.
 
 The productization plan is to **refactor, not rewrite** the TS POC into packages,
 then wrap it in services. Reuse the POC's logic (adapter, detectors, scorer,
@@ -76,7 +77,7 @@ Do one phase at a time. After each, everything must build, lint, and pass tests.
 
 ## Conventions (follow these)
 
-- **Language-agnostic attacks.** Never hardcode probes in TS/Python. Attacks live
+- **Language-agnostic attacks.** Never hardcode probes in code. Attacks live
   in `attacks/attack_library.json`. The engine reads data.
 - **Schema first.** All cross-boundary types come from `packages/schema` (zod).
   Infer types with `z.infer`; do not hand-write duplicate interfaces.
@@ -88,27 +89,13 @@ Do one phase at a time. After each, everything must build, lint, and pass tests.
 - **Two headline scores:** resilience % (pass rate, higher better) and
   weighted-risk % (severity-weighted fail rate, lower better). Severity weights:
   critical 4, high 3, medium 2, low 1.
-- **Keep Python at parity.** If you change scoring, detection, or the library
-  contract, update `python/redteam.py` too (or open a follow-up task).
 - **ESM everywhere.** `"type": "module"`; use `.js` import specifiers in TS ESM.
 - **Small, testable modules.** Adapter / detectors / runner / scorer stay separable
   and unit-tested.
 
 ## Commands
 
-POC (works today):
-```bash
-# TypeScript
-cd typescript && npm install
-npx tsx src/redteam.ts --config config.json --dry-run
-npx tsx src/redteam.ts --config config.json --out ./reports
-
-# Python
-cd python && pip install -r requirements.txt
-python redteam.py --config config.yaml --dry-run
-```
-
-Monorepo (once scaffolded — use these scripts):
+Monorepo commands:
 ```bash
 pnpm install
 pnpm -r build          # build all packages
@@ -154,7 +141,6 @@ pnpm --filter @armoriq/engine test
 - `pnpm -r test` passes, including the golden-agent smoke test.
 - New behavior has tests.
 - Docs updated if the contract changed (schema, scoring, library format).
-- Python parity preserved or a follow-up task filed.
 
 ## Do not
 

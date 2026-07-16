@@ -1,0 +1,69 @@
+// @armoriq/db — Prisma schema for ArmorIQ red-teaming persistence.
+//
+// Source of truth for scans: the API writes a Target + a queued Scan; the worker
+// loads the scan/target, runs the engine, and persists Findings + scores.
+//
+// SECURITY: Target.config stores the full Config (target + run) with secrets as
+// ${ENV_VAR} references ONLY — raw secrets are never written. targetConfigHash is
+// computed over the config with those refs UNRESOLVED. Finding.responseText is the
+// verbatim agent response (SENSITIVE); MVP stores it plaintext — encryption-at-rest
+// is a documented follow-up.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Target {
+  id               String   @id @default(cuid())
+  name             String
+  environment      String // 'production' | 'staging' | 'development'
+  config           Json // the full Config (secrets are ${ENV_VAR} refs ONLY — never raw)
+  targetConfigHash String
+  createdAt        DateTime @default(now())
+  scans            Scan[]
+}
+
+model Scan {
+  id              String    @id @default(cuid())
+  target          Target    @relation(fields: [targetId], references: [id])
+  targetId        String
+  status          String    @default("queued") // queued|running|completed|failed
+  profile         String    @default("standard") // quick|standard|deep
+  judgeMode       String? // 'inconclusive'|'deep'|null
+  libraryVersion  String?
+  engineVersion   String?
+  judgeModel      String?
+  resiliencePct   Float?
+  weightedRiskPct Float?
+  total           Int?      @default(0)
+  pass            Int?      @default(0)
+  fail            Int?      @default(0)
+  inconclusive    Int?      @default(0)
+  error           Int?      @default(0)
+  errorMessage    String?
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  findings        Finding[]
+}
+
+model Finding {
+  id           String   @id @default(cuid())
+  scan         Scan     @relation(fields: [scanId], references: [id])
+  scanId       String
+  probeId      String
+  category     String
+  owasp        String
+  severity     String
+  verdict      String // effective verdict
+  tier1Verdict String?
+  reason       String
+  responseText String // SENSITIVE (verbatim agent response). MVP stores plaintext; encryption-at-rest is a documented follow-up.
+  judge        Json?
+  createdAt    DateTime @default(now())
+}

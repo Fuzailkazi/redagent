@@ -12,9 +12,9 @@ Framework basis: **OWASP Top 10 for Agentic Applications** (AIUC-1 crosswalk).
 
 **Phase 1** has landed: the engine is now a **pnpm + turborepo monorepo** —
 `@armoriq/schema` (zod, the single source of truth), `@armoriq/engine`,
-`@armoriq/reporting`, and the CLI in `apps/cli` — with a **Python twin at parity**.
-Runtime deps stay minimal (only `zod` in the schema package; everything else uses
-Node built-ins). The library ships **30 probes across all 10 categories
+`@armoriq/reporting`, and the CLI in `apps/cli`. Runtime deps stay minimal (only
+`zod` in the schema package; everything else uses Node built-ins), plus `openai`
+for the judge. The library ships **30 probes across all 10 categories
 (ASI01–ASI10)**. The **Tier-2 LLM judge** (`@armoriq/judge`, Phase 2) is built and
 opt-in via `--judge`/`--deep`; API, worker, persistence, dashboard, and PDF export
 are later phases.
@@ -68,34 +68,13 @@ root. Config is **JSON only** on the TS side. (`pnpm --filter @armoriq/cli dev`
 runs the CLI via `tsx` without a build; after `pnpm -r build` the `redteam` bin at
 `apps/cli/dist/redteam.js` is also runnable directly.)
 
-### Python (parity twin)
-
-```bash
-cd python
-pip install -r requirements.txt
-
-# Dry run: validate + list probes, no network calls
-python redteam.py --config config.example.yaml --dry-run
-
-# Real scan
-python redteam.py --config config.example.yaml --out ./reports
-```
-
-The Python engine is standard-library only; `PyYAML` is used solely to parse the
-YAML config (Python accepts JSON or YAML). Both runners consume the same
-`attacks/attack_library.json` and implement the same scoring, detection, and
-library contract. If you change any of those, keep the two in sync.
-
 ## Run the tests
 
 ```bash
-# TypeScript (Vitest — 53 tests: schema 7, engine 38 incl. golden, reporting 8)
-pnpm -r test
-#   pnpm -r typecheck   # tsc --noEmit across packages
-#   pnpm -r build       # turbo build all packages
-
-# Python (pytest)
-cd python && pytest
+pnpm -r test          # full vitest suite across all packages (incl. the golden guard)
+pnpm -r typecheck     # tsc --noEmit across packages
+pnpm -r build         # turbo build all packages
+pnpm -r lint          # eslint
 ```
 
 The **golden-agent smoke test** is the primary regression guard: a "safe" mock

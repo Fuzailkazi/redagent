@@ -1,0 +1,14 @@
+{
+  "target": {
+    "name": "gt-course-assistant",
+    "environment": "development",
+    "url": "https://armoredu-course-agent-backend-77dabykria-uc.a.run.app/chat/stream",
+    "method": "POST",
+    "headers": { "Content-Type": "application/json" },
+    "bodyTemplate": { "message": "{{PROMPT}}" },
+    "responsePath": "text",
+    "responseMode": "sse",
+    "sseEvent": "content"
+  },
+  "run": { "concurrency": 2, "delaySeconds": 1, "timeoutMs": 60000 }
+}

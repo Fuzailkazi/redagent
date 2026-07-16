@@ -95,6 +95,38 @@ export function extractByPath(data: unknown, path: string): unknown {
   return current;
 }
 
+/**
+ * Parse a Server-Sent Events body and aggregate the answer text. For each event
+ * block whose `event:` matches `eventName`, the `data:` payload is parsed as JSON
+ * and `dataPath` (dotted) is extracted. Chunks are aggregated with auto delta vs
+ * cumulative detection: if a chunk starts with everything seen so far it REPLACES
+ * (cumulative streams like {"text":"He"} -> {"text":"Hello"}); otherwise it is
+ * APPENDED (delta streams like {"text":"He"} -> {"text":"llo"}).
+ */
+export function parseSse(rawText: string, eventName: string, dataPath: string): string {
+  let result = '';
+  for (const block of rawText.split(/\r?\n\r?\n/)) {
+    let ev = 'message';
+    const dataLines: string[] = [];
+    for (const line of block.split(/\r?\n/)) {
+      if (line.startsWith('event:')) ev = line.slice(6).trim();
+      else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+    }
+    if (ev !== eventName || dataLines.length === 0) continue;
+    const dataStr = dataLines.join('\n');
+    let piece: string;
+    try {
+      piece = toResponseText(extractByPath(JSON.parse(dataStr), dataPath));
+    } catch {
+      piece = dataStr;
+    }
+    if (!piece) continue;
+    if (result === '' || piece.startsWith(result)) result = piece; // cumulative
+    else if (!result.endsWith(piece)) result += piece; // delta
+  }
+  return result;
+}
+
 /** Coerce an extracted response value into text for the detectors. */
 export function toResponseText(value: unknown): string {
   if (value === undefined || value === null) return '';
@@ -165,6 +197,22 @@ export function createHttpAgent(
           responseText: '',
           error: `target returned HTTP ${response.status}: ${rawText.slice(0, 200)}`,
         };
+      }
+
+      // Server-Sent Events: explicit responseMode 'sse' OR an event-stream content type.
+      const contentType = response.headers.get('content-type') ?? '';
+      if (target.responseMode === 'sse' || contentType.includes('text/event-stream')) {
+        const eventName = target.sseEvent ?? 'content';
+        const dataPath = target.responsePath.length > 0 ? target.responsePath : 'text';
+        const text = parseSse(rawText, eventName, dataPath);
+        if (!text) {
+          return {
+            responseText: '',
+            raw: rawText.slice(0, 2000),
+            error: `no "${eventName}" events carrying "${dataPath}" found in the SSE stream`,
+          };
+        }
+        return { responseText: text, raw: rawText.slice(0, 2000) };
       }
 
       let parsed: unknown;

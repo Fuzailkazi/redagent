@@ -1,0 +1,30 @@
+{
+  "name": "armoriq-design-system-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Browsable, deployable catalog for the ArmorIQ V5 design system. Renders the real @shared/ui primitives and tokens.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4317"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.11.0",
+    "framer-motion": "^12.40.0",
+    "lucide-react": "^0.545.0",
+    "motion": "^12.40.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.18.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.4",
+    "tailwindcss": "^4.1.14",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.7"
+  }
+}

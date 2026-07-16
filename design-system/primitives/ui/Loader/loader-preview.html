@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArmorIQ Loaders Preview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f0f0f;
+      font-family: 'Geist', -apple-system, system-ui, sans-serif;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 40px;
+      gap: 48px;
+    }
+
+    h1 {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #555;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    .loader-card {
+      background: #181818;
+      border: 1px solid #252525;
+      border-radius: 18px;
+      padding: 32px 36px 44px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+
+    .loader-card:hover {
+      border-color: #333;
+    }
+
+    .loader-label-tag {
+      position: absolute;
+      bottom: 13px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #3a3a3a;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .loader-text {
+      font-size: 34px;
+      font-weight: 600;
+      color: #efefef;
+      letter-spacing: -0.015em;
+    }
+
+    .matrix-svg {
+      overflow: visible;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ArmorIQ — Loader Variants</h1>
+
+  <div class="grid">
+
+    <!-- THINKING: diagonal comet sweep TL to BR -->
+    <div class="loader-card">
+      <svg id="m-thinking" class="matrix-svg" width="76" height="76" viewBox="0 0 76 76">
+        <defs>
+          <filter id="glow-t" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <g id="off-t"></g>
+        <g id="on-t" filter="url(#glow-t)"></g>
+      </svg>
+      <span class="loader-text">Thinking</span>
+      <span class="loader-label-tag">Loader 1</span>
+    </div>
+
+    <!-- READING: comet orbits the perimeter square -->
+    <div class="loader-card">
+      <svg id="m-reading" class="matrix-svg" width="76" height="76" viewBox="0 0 76 76">
+        <defs>
+          <filter id="glow-r" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <g id="off-r"></g>
+        <g id="on-r" filter="url(#glow-r)"></g>
+      </svg>
+      <span class="loader-text">Reading</span>
+      <span class="loader-label-tag">Loader 2</span>
+    </div>
+
+    <!-- ANALYSING: rings pulse outward from center -->
+    <div class="loader-card">
+      <svg id="m-analysing" class="matrix-svg" width="76" height="76" viewBox="0 0 76 76">
+        <defs>
+          <filter id="glow-a" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <g id="off-a"></g>
+        <g id="on-a" filter="url(#glow-a)"></g>
+      </svg>
+      <span class="loader-text">Analysing</span>
+      <span class="loader-label-tag">Loader 3</span>
+    </div>
+
+    <!-- DEBUGGING: smooth diagonal cosine wave -->
+    <div class="loader-card">
+      <svg id="m-debugging" class="matrix-svg" width="76" height="76" viewBox="0 0 76 76">
+        <defs>
+          <filter id="glow-d" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <g id="off-d"></g>
+        <g id="on-d" filter="url(#glow-d)"></g>
+      </svg>
+      <span class="loader-text">Debugging</span>
+      <span class="loader-label-tag">Loader 4</span>
+    </div>
+
+  </div>
+
+  <script>
+    const NS = 'http://www.w3.org/2000/svg';
+    const GRID = 5;
+    const CELL = 14;
+    const GAP  = 3;
+    const STEP = CELL + GAP;
+    const ON_COLOR  = '#E15002';
+    const OFF_COLOR = '#262626';
+
+    // Build the SVG matrix and return array of {el, r, c}
+    function buildMatrix(offId, onId) {
+      const offLayer = document.getElementById(offId);
+      const onLayer  = document.getElementById(onId);
+      const cells = [];
+      for (let r = 0; r < GRID; r++) {
+        for (let c = 0; c < GRID; c++) {
+          const x = c * STEP, y = r * STEP;
+
+          const bg = document.createElementNS(NS, 'rect');
+          bg.setAttribute('x', x); bg.setAttribute('y', y);
+          bg.setAttribute('width', CELL); bg.setAttribute('height', CELL);
+          bg.setAttribute('rx', 3); bg.setAttribute('fill', OFF_COLOR);
+          offLayer.appendChild(bg);
+
+          const fg = document.createElementNS(NS, 'rect');
+          fg.setAttribute('x', x); fg.setAttribute('y', y);
+          fg.setAttribute('width', CELL); fg.setAttribute('height', CELL);
+          fg.setAttribute('rx', 3); fg.setAttribute('fill', ON_COLOR);
+          fg.setAttribute('opacity', 0);
+          onLayer.appendChild(fg);
+
+          cells.push({ el: fg, r, c });
+        }
+      }
+      return cells;
+    }
+
+    // Apply an opacity grid to cell elements
+    function applyGrid(cells, grid) {
+      for (const { el, r, c } of cells) {
+        el.setAttribute('opacity', Math.min(1, Math.max(0, grid[r][c])).toFixed(3));
+      }
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────
+     * LOADER 1: THINKING
+     * A single comet sweeps along the diagonal (r+c = const) from top-left
+     * to bottom-right, with a fading trail behind it, then wraps back.
+     * ────────────────────────────────────────────────────────────────────── */
+    function frameTHINKING(t) {
+      const maxDiag = (GRID - 1) * 2; // 8
+      // comet head position along diagonal axis 0..8
+      const head = t * (maxDiag + 2) - 1; // goes from -1 to 9, so full sweep
+      const grid = [];
+      for (let r = 0; r < GRID; r++) {
+        grid[r] = [];
+        for (let c = 0; c < GRID; c++) {
+          const d = r + c;
+          const behind = head - d; // positive means behind head
+          let op = 0;
+          if (behind >= 0 && behind < 4) {
+            op = Math.pow(1 - behind / 4, 0.6);
+          }
+          grid[r][c] = op;
+        }
+      }
+      return grid;
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────
+     * LOADER 2: READING
+     * A comet head races around the outer perimeter ring (16 cells),
+     * clockwise, with a bright tail. A ghost comet follows 8 cells behind
+     * at half brightness to suggest a "reading scan" motion.
+     * ────────────────────────────────────────────────────────────────────── */
+    // Build perimeter cell list clockwise: top, right, bottom, left
+    const PERIM = [];
+    for (let c = 0; c < 5; c++) PERIM.push([0, c]);         // top L to R
+    for (let r = 1; r < 5; r++) PERIM.push([r, 4]);         // right T to B
+    for (let c = 3; c >= 0; c--) PERIM.push([4, c]);        // bottom R to L
+    for (let r = 3; r >= 1; r--) PERIM.push([r, 0]);        // left B to T
+    const PLEN = PERIM.length; // 16
+
+    // Map each grid cell to its perimeter index (or -1 if interior)
+    const CELL_PERIM_IDX = Array.from({ length: GRID }, () => Array(GRID).fill(-1));
+    PERIM.forEach(([r, c], i) => { CELL_PERIM_IDX[r][c] = i; });
+
+    function frameREADING(t) {
+      const grid = Array.from({ length: GRID }, () => Array(GRID).fill(0));
+      // Two comets, second one half-brightness 8 steps behind
+      const comets = [
+        { pos: t * PLEN, dim: 1.0 },
+        { pos: ((t * PLEN + PLEN / 2) % PLEN), dim: 0.35 },
+      ];
+      for (const { pos, dim } of comets) {
+        for (let r = 0; r < GRID; r++) {
+          for (let c = 0; c < GRID; c++) {
+            const idx = CELL_PERIM_IDX[r][c];
+            if (idx < 0) continue;
+            // Angular distance from head (wrapping)
+            const behind = (pos - idx + PLEN) % PLEN;
+            let op = 0;
+            if (behind < 5) {
+              op = Math.pow(1 - behind / 5, 0.5);
+            }
+            grid[r][c] = Math.max(grid[r][c], op * dim);
+          }
+        }
+      }
+      return grid;
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────
+     * LOADER 3: ANALYSING
+     * A ring expands outward from center cell (2,2). When it reaches the
+     * corners it immediately restarts — continuously pulsing outward.
+     * Two rings offset by half a period give a heartbeat-style rhythm.
+     * ────────────────────────────────────────────────────────────────────── */
+    function frameANALYSING(t) {
+      const maxR = Math.sqrt(8); // ~2.83, corner dist from center
+      const grid = [];
+      for (let r = 0; r < GRID; r++) {
+        grid[r] = [];
+        for (let c = 0; c < GRID; c++) {
+          const dist = Math.sqrt((r - 2) ** 2 + (c - 2) ** 2);
+          // Two rings
+          const ring1 = (t % 1) * (maxR + 1.2);
+          const ring2 = ((t + 0.5) % 1) * (maxR + 1.2);
+          const d1 = Math.abs(dist - ring1);
+          const d2 = Math.abs(dist - ring2);
+          const best = Math.min(d1, d2);
+          const op = Math.max(0, 1 - best / 0.8);
+          grid[r][c] = Math.pow(op, 1.4);
+        }
+      }
+      return grid;
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────
+     * LOADER 4: DEBUGGING
+     * A smooth cosine wave travels along the r+c diagonal axis.
+     * The brightness at each cell is purely sinusoidal — no hard edges.
+     * Cells on the same diagonal (r+c = k) are perfectly in phase.
+     * ────────────────────────────────────────────────────────────────────── */
+    function frameDEBUGGING(t) {
+      const grid = [];
+      for (let r = 0; r < GRID; r++) {
+        grid[r] = [];
+        for (let c = 0; c < GRID; c++) {
+          // Normalized diagonal position 0..1
+          const diagNorm = (r + c) / ((GRID - 1) * 2);
+          // Wave travels in positive direction with time
+          const phase = diagNorm - t;
+          const val = (Math.cos(phase * Math.PI * 2) + 1) / 2;
+          // Raise to power to sharpen peaks and deepen troughs
+          grid[r][c] = Math.pow(val, 1.6);
+        }
+      }
+      return grid;
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────
+     * Animation loop
+     * ────────────────────────────────────────────────────────────────────── */
+    const loaders = [
+      { offId: 'off-t', onId: 'on-t', fn: frameTHINKING,  cyclMs: 1800 },
+      { offId: 'off-r', onId: 'on-r', fn: frameREADING,   cyclMs: 2200 },
+      { offId: 'off-a', onId: 'on-a', fn: frameANALYSING, cyclMs: 1600 },
+      { offId: 'off-d', onId: 'on-d', fn: frameDEBUGGING, cyclMs: 1400 },
+    ];
+
+    const starts = loaders.map(() => null);
+
+    loaders.forEach(({ offId, onId, fn, cyclMs }, idx) => {
+      const cells = buildMatrix(offId, onId);
+      applyGrid(cells, fn(0));
+
+      function tick(now) {
+        if (!starts[idx]) starts[idx] = now;
+        const t = ((now - starts[idx]) % cyclMs) / cyclMs;
+        applyGrid(cells, fn(t));
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+  </script>
+</body>
+</html>

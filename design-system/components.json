@@ -1,0 +1,2645 @@
+{
+  "$schema": "./components.schema.json",
+  "name": "armoriq",
+  "description": "ArmorIQ V5 compact-SaaS design system component manifest.",
+  "tokensFile": "./tokens.json",
+  "components": [
+    {
+      "name": "Button",
+      "category": "actions",
+      "tier": 1,
+      "import": "import { Button } from '@shared/ui'",
+      "source": "primitives/ui/Button/Button.tsx",
+      "summary": "The canonical button primitive that replaces 367 ad-hoc <button> sites with one variant + size + icon-slot component.",
+      "props": [
+        {
+          "name": "variant",
+          "type": "primary | secondary | tertiary | ghost | danger | dangerSoft",
+          "default": "primary",
+          "description": "Visual emphasis and intent."
+        },
+        {
+          "name": "size",
+          "type": "xs | sm | md",
+          "default": "md",
+          "description": "Height and padding scale."
+        },
+        {
+          "name": "iconOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Hides the label, makes the button square; children becomes aria-label."
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Swaps the leading slot for a spinner and disables interaction."
+        },
+        {
+          "name": "leading",
+          "type": "ComponentType<IconProps>",
+          "description": "Leading icon component."
+        },
+        {
+          "name": "trailing",
+          "type": "ComponentType<IconProps>",
+          "description": "Trailing icon component."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Visible label; with iconOnly it is read as the aria-label."
+        }
+      ],
+      "tokens": [
+        "aq-accent",
+        "aq-accent-strong",
+        "aq-accent-soft",
+        "aq-ink-on",
+        "aq-surface",
+        "aq-ink-soft",
+        "aq-border",
+        "aq-zebra",
+        "aq-bad",
+        "aq-bad-soft",
+        "aq-caption",
+        "aq-xs",
+        "aq-sm"
+      ],
+      "variantClasses": {
+        "primary": "bg-aq-accent text-aq-ink-on hover:bg-aq-accent-strong",
+        "secondary": "bg-aq-surface text-aq-ink-soft border-aq-border border hover:bg-aq-zebra",
+        "tertiary": "bg-transparent text-aq-accent-strong hover:bg-aq-accent-soft",
+        "ghost": "bg-transparent text-aq-ink-soft hover:bg-aq-zebra",
+        "danger": "bg-aq-bad text-aq-ink-on hover:bg-aq-bad/90",
+        "dangerSoft": "bg-aq-bad-soft text-aq-bad border-aq-bad/30 border hover:bg-aq-bad-soft/70",
+        "size.xs": "h-7 px-2.5 text-aq-caption gap-1",
+        "size.sm": "h-8 px-3 text-aq-xs gap-1.5",
+        "size.md": "h-10 px-3.5 text-aq-sm gap-1.5"
+      },
+      "example": "site/examples/Button.html",
+      "usage": "Use variant=primary for the one main action per view; secondary for outline; tertiary/ghost for low-emphasis; danger/dangerSoft for destructive. Use iconOnly for tight chrome rows and loading for in-flight submits.",
+      "whenToReachFor": "Any clickable action. Never a raw <button> in feature code."
+    },
+    {
+      "name": "Chip",
+      "category": "data-display",
+      "tier": 1,
+      "import": "import { Chip } from '@shared/ui'",
+      "source": "primitives/ui/Chip/Chip.tsx",
+      "summary": "The canonical chip that unifies passive label chips, active filter chips, and status pills (tone x selected x removable, optional leading icon).",
+      "props": [
+        {
+          "name": "tone",
+          "type": "neutral | accent | good | warn | bad | info",
+          "default": "neutral",
+          "description": "Semantic color tone."
+        },
+        {
+          "name": "size",
+          "type": "sm | md",
+          "default": "md",
+          "description": "Chip height/padding/text scale."
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "default": "false",
+          "description": "Active/selected filter styling; sets aria-pressed."
+        },
+        {
+          "name": "removable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders a trailing x button."
+        },
+        {
+          "name": "leading",
+          "type": "ComponentType<IconProps>",
+          "description": "Optional leading icon."
+        },
+        {
+          "name": "onClick",
+          "type": "(e: MouseEvent<HTMLElement>) => void",
+          "description": "When provided, the chip renders as a button."
+        },
+        {
+          "name": "onRemove",
+          "type": "(e: MouseEvent<HTMLButtonElement>) => void",
+          "description": "Fires on trailing x click; required when removable."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Chip label content."
+        }
+      ],
+      "tokens": [
+        "aq-surface",
+        "aq-ink-soft",
+        "aq-border",
+        "aq-border-strong",
+        "aq-ink",
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-accent-strong",
+        "aq-good",
+        "aq-good-soft",
+        "aq-warn",
+        "aq-warn-soft",
+        "aq-bad",
+        "aq-bad-soft",
+        "aq-info",
+        "aq-info-soft",
+        "aq-caption",
+        "aq-xs"
+      ],
+      "variantClasses": {
+        "tone.neutral": "bg-aq-surface text-aq-ink-soft border-aq-border",
+        "tone.accent": "bg-aq-accent-soft text-aq-accent-strong border-transparent",
+        "tone.good": "bg-aq-good-soft text-aq-good border-transparent",
+        "tone.warn": "bg-aq-warn-soft text-aq-warn border-transparent",
+        "tone.bad": "bg-aq-bad-soft text-aq-bad border-transparent",
+        "tone.info": "bg-aq-info-soft text-aq-info border-transparent",
+        "selected.neutral": "bg-aq-surface text-aq-ink border-aq-border-strong",
+        "selected.accent": "bg-aq-accent-soft text-aq-accent-strong border-aq-accent",
+        "selected.good": "bg-aq-good-soft text-aq-good border-aq-good",
+        "selected.warn": "bg-aq-warn-soft text-aq-warn border-aq-warn",
+        "selected.bad": "bg-aq-bad-soft text-aq-bad border-aq-bad",
+        "selected.info": "bg-aq-info-soft text-aq-info border-aq-info",
+        "size.sm": "h-5 px-2 gap-1 text-aq-caption",
+        "size.md": "h-6 px-2.5 gap-1.5 text-aq-xs"
+      },
+      "example": "site/examples/Chip.html",
+      "usage": "Use for filter chips, role/level/status labels, and any small rounded-full tag. Set selected for active filters and removable+onRemove for dismissible filters.",
+      "whenToReachFor": "You need a small rounded pill/tag/filter token instead of hand-rolling a rounded-full border px-2 span."
+    },
+    {
+      "name": "FormField",
+      "category": "inputs",
+      "tier": 1,
+      "import": "import { FormField } from '@shared/ui'",
+      "source": "primitives/ui/FormField/FormField.tsx",
+      "summary": "Wraps a form control with a label, optional required mark, and helper text that swaps to an error message (with a one-time shake) when an error is set.",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "description": "Field label text."
+        },
+        {
+          "name": "helper",
+          "type": "string",
+          "description": "Helper text shown when error is unset."
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": "Error message; replaces helper and red-tints the field."
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders a red required asterisk."
+        },
+        {
+          "name": "htmlFor",
+          "type": "string",
+          "description": "Explicit id for the control inside children."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "The control."
+        }
+      ],
+      "tokens": [
+        "aq-ink-soft",
+        "aq-ink-muted",
+        "aq-bad",
+        "aq-xs"
+      ],
+      "variantClasses": {
+        "wrapper": "flex flex-col gap-1.5",
+        "label": "text-aq-ink-soft text-aq-xs inline-flex items-center gap-1 font-medium",
+        "required": "text-aq-bad",
+        "helper": "text-aq-ink-muted text-aq-xs",
+        "error": "text-aq-bad text-aq-xs font-medium"
+      },
+      "example": "site/examples/FormField.html",
+      "usage": "Wrap an input/select/textarea to get a consistent label + helper/error block; pass error to switch the helper line to an error and trigger a shake.",
+      "whenToReachFor": "Any labeled form control that needs helper text and/or validation error display."
+    },
+    {
+      "name": "SearchField",
+      "category": "inputs",
+      "tier": 1,
+      "import": "import { SearchField } from '@shared/ui'",
+      "source": "primitives/ui/SearchField/SearchField.tsx",
+      "summary": "A controlled search-styled text input with a leading magnifier icon and a trailing clear (x) button that appears when there is a value.",
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "description": "Controlled input value."
+        },
+        {
+          "name": "onChange",
+          "type": "(next: string) => void",
+          "description": "Called with the next string value."
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": "Searchâ€¦",
+          "description": "Placeholder text."
+        }
+      ],
+      "tokens": [
+        "aq-border",
+        "aq-surface",
+        "aq-accent",
+        "aq-ink",
+        "aq-ink-muted",
+        "aq-sm"
+      ],
+      "variantClasses": {
+        "wrapper": "border-aq-border bg-aq-surface flex h-9 items-center gap-2 rounded-md border px-3 focus-within:border-aq-accent transition-colors",
+        "input": "text-aq-sm placeholder:text-aq-ink-muted flex-1 bg-transparent outline-none",
+        "clear": "text-aq-ink-muted hover:text-aq-ink shrink-0"
+      },
+      "example": "site/examples/SearchField.html",
+      "usage": "Use as a controlled filter input in list toolbars, filter popovers, and search-as-you-type panels; the owning route holds value/onChange.",
+      "whenToReachFor": "A user filters a list by typing a search query."
+    },
+    {
+      "name": "StatusBadge",
+      "category": "data-display",
+      "tier": 1,
+      "import": "import { StatusBadge } from '@shared/ui'",
+      "source": "primitives/ui/StatusBadge/StatusBadge.tsx",
+      "summary": "A small status pill (tone + optional icon + label, optional shimmer) that conveys status as color plus icon plus label, never color alone.",
+      "props": [
+        {
+          "name": "tone",
+          "type": "good | warn | bad | info | neutral | accent",
+          "description": "Semantic status tone."
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": "Badge text."
+        },
+        {
+          "name": "icon",
+          "type": "ComponentType<IconProps>",
+          "description": "Optional leading status icon (recommended)."
+        },
+        {
+          "name": "shape",
+          "type": "pill | tag",
+          "default": "pill",
+          "description": "rounded-full pill vs rounded-md tag."
+        },
+        {
+          "name": "shimmer",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shimmers the label for in-progress states."
+        }
+      ],
+      "tokens": [
+        "aq-good",
+        "aq-good-soft",
+        "aq-warn",
+        "aq-warn-soft",
+        "aq-bad",
+        "aq-bad-soft",
+        "aq-info",
+        "aq-info-soft",
+        "aq-zebra",
+        "aq-ink-soft",
+        "aq-accent-soft",
+        "aq-accent-strong",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "tone.good": "bg-aq-good-soft text-aq-good",
+        "tone.warn": "bg-aq-warn-soft text-aq-warn",
+        "tone.bad": "bg-aq-bad-soft text-aq-bad",
+        "tone.info": "bg-aq-info-soft text-aq-info",
+        "tone.neutral": "bg-aq-zebra text-aq-ink-soft",
+        "tone.accent": "bg-aq-accent-soft text-aq-accent-strong",
+        "base": "text-aq-caption inline-flex items-center gap-1 self-start px-2 py-0.5 font-semibold",
+        "shape.pill": "rounded-full",
+        "shape.tag": "rounded-md"
+      },
+      "example": "site/examples/StatusBadge.html",
+      "usage": "Use to show a policy/enforcement/validation state as a colored pill with an icon and label.",
+      "whenToReachFor": "A row or card needs a compact colored status indicator with a label."
+    },
+    {
+      "name": "StatusChip",
+      "category": "feedback",
+      "tier": 1,
+      "import": "import { StatusChip, useStatusChip } from '@shared/ui'",
+      "source": "primitives/ui/StatusChip/StatusChip.tsx",
+      "summary": "A bottom-center confirmation toast chip (tone icon, optional action, optional dismiss) that appears after an important action lands, with a useStatusChip() hook to drive it.",
+      "props": [
+        {
+          "name": "message",
+          "type": "string",
+          "description": "The confirmation message."
+        },
+        {
+          "name": "tone",
+          "type": "good | warn | bad",
+          "default": "good",
+          "description": "Tone selecting icon and color."
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "description": "Renders a Dismiss button when provided."
+        },
+        {
+          "name": "action",
+          "type": "{ label: string; onClick: () => void }",
+          "description": "Optional inline action button (e.g. Undo)."
+        }
+      ],
+      "tokens": [
+        "aq-toast-bg",
+        "aq-toast-border",
+        "aq-toast-fg",
+        "aq-good",
+        "aq-warn",
+        "aq-bad",
+        "aq-ink-on",
+        "aq-ink-on-muted",
+        "aq-sm",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "tone.good": "text-aq-good",
+        "tone.warn": "text-aq-warn",
+        "tone.bad": "text-aq-bad",
+        "base": "border-aq-toast-border bg-aq-toast-bg text-aq-toast-fg shadow-aq-modal pointer-events-auto flex items-center gap-2.5 rounded-lg border px-4 py-2.5"
+      },
+      "example": "site/examples/StatusChip.html",
+      "usage": "Use via useStatusChip() to show a transient 'this happened' confirmation after a Save/Confirm/Apply, optionally with an Undo action; drop {chip.element} in the route and call chip.show(msg).",
+      "whenToReachFor": "An action lands and you want a brief bottom-center confirmation instead of an interstitial modal."
+    },
+    {
+      "name": "Banner",
+      "category": "feedback",
+      "tier": 1,
+      "import": "import { Banner } from '@shared/ui'",
+      "source": "primitives/ui/Banner/Banner.tsx",
+      "summary": "An inline informational strip with a tone-tinted background, leading icon, message, and optional action and dismiss button.",
+      "props": [
+        {
+          "name": "tone",
+          "type": "info | good | warn | bad",
+          "default": "info",
+          "description": "Semantic tone tint."
+        },
+        {
+          "name": "icon",
+          "type": "ComponentType<IconProps>",
+          "description": "Overrides the default tone icon."
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "description": "Renders a trailing x dismiss when provided."
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "description": "Optional trailing-edge action element."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Banner message content."
+        }
+      ],
+      "tokens": [
+        "aq-info",
+        "aq-info-soft",
+        "aq-good",
+        "aq-good-soft",
+        "aq-warn",
+        "aq-warn-soft",
+        "aq-bad",
+        "aq-bad-soft",
+        "aq-sm"
+      ],
+      "variantClasses": {
+        "tone.info": "bg-aq-info-soft text-aq-info border-aq-info/30",
+        "tone.good": "bg-aq-good-soft text-aq-good border-aq-good/30",
+        "tone.warn": "bg-aq-warn-soft text-aq-warn border-aq-warn/30",
+        "tone.bad": "bg-aq-bad-soft text-aq-bad border-aq-bad/30",
+        "base": "flex items-center gap-2.5 rounded-md border px-3.5 py-2.5"
+      },
+      "example": "site/examples/Banner.html",
+      "usage": "Use for an inline, full-width tinted notice (read-only mode, errors, draft-restored) optionally with an action and dismiss.",
+      "whenToReachFor": "You need a persistent inline status/notice strip at the top of a section or form."
+    },
+    {
+      "name": "SettingCard",
+      "category": "layout",
+      "tier": 1,
+      "import": "import { SettingCard } from '@shared/ui'",
+      "source": "primitives/ui/SettingCard/SettingCard.tsx",
+      "summary": "A Vercel-style account-settings card with a header (title + optional description), a body control, and an optional tinted footer-bar carrying helper text and a state-driven Save button.",
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Card title, always rendered in the header."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "One-line description under the title."
+        },
+        {
+          "name": "tone",
+          "type": "default | danger | ssomanaged",
+          "default": "default",
+          "description": "Visual tone."
+        },
+        {
+          "name": "saveState",
+          "type": "idle | dirty | saving | success | error",
+          "default": "idle",
+          "description": "Drives the Save button; ignored when immediate is true."
+        },
+        {
+          "name": "onSave",
+          "type": "() => void",
+          "description": "Called when the Save button is clicked."
+        },
+        {
+          "name": "saveLabel",
+          "type": "string",
+          "default": "Save",
+          "description": "Label for the Save button."
+        },
+        {
+          "name": "immediate",
+          "type": "boolean",
+          "default": "false",
+          "description": "When true, the footer-bar is omitted (no Save button)."
+        },
+        {
+          "name": "helperText",
+          "type": "ReactNode",
+          "description": "Helper text shown in the footer-bar's left slot."
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": "Inline error displayed below the body; Save stays dirty to retry."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Body of the card (the control)."
+        }
+      ],
+      "tokens": [
+        "aq-surface",
+        "aq-border",
+        "aq-zebra",
+        "aq-ink",
+        "aq-ink-muted",
+        "aq-bad",
+        "aq-bad-soft",
+        "aq-good",
+        "aq-accent",
+        "aq-ink-on",
+        "aq-md",
+        "aq-sm",
+        "aq-xs",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "root": "bg-aq-surface border-aq-border relative overflow-hidden rounded-lg border",
+        "tone.danger.strip": "bg-aq-bad absolute inset-x-0 top-0 h-0.5",
+        "tone.ssomanaged.body": "bg-aq-zebra p-5",
+        "footer": "border-aq-border bg-aq-zebra flex items-center justify-between gap-3 border-t px-5 py-3",
+        "save.default": "bg-aq-accent text-aq-ink-on",
+        "save.danger": "bg-aq-bad text-aq-ink-on"
+      },
+      "example": "site/examples/SettingCard.html",
+      "usage": "Render one per individual setting on the /account page; put the control in children, wire saveState/onSave, and set immediate for controls that take effect on change. Use tone=danger for destructive settings and tone=ssomanaged for SSO-locked read-only ones.",
+      "whenToReachFor": "You need a single, self-contained account/settings setting with its own Save affordance and dirty/saving/success/error feedback."
+    },
+    {
+      "name": "Tabs",
+      "category": "navigation",
+      "tier": 1,
+      "import": "import { Tabs } from '@shared/ui'",
+      "source": "primitives/ui/Tabs/Tabs.tsx",
+      "summary": "A horizontal, page-level tab strip under a hairline with a spring-animated 2px accent underline indicator and optional per-tab count badges.",
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "description": "The active tab key."
+        },
+        {
+          "name": "onChange",
+          "type": "(next: string) => void",
+          "description": "Called with the next tab key on click."
+        },
+        {
+          "name": "items",
+          "type": "ReadonlyArray<TabItem>",
+          "description": "Tabs in display order; TabItem = { key, label, icon?, count?, danger? }."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "description": "Accessible label for the tablist."
+        }
+      ],
+      "tokens": [
+        "aq-border",
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-bad",
+        "aq-ink",
+        "aq-ink-muted",
+        "aq-zebra",
+        "aq-sm",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "tablist": "border-aq-border flex items-center gap-0.5 border-b",
+        "tab": "text-aq-sm hover:bg-aq-accent-soft relative inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition-colors",
+        "active": "text-aq-ink",
+        "inactive": "text-aq-ink-muted hover:text-aq-ink",
+        "active.danger": "text-aq-bad",
+        "count": "bg-aq-zebra text-aq-ink-muted text-aq-caption ml-0.5 rounded-full px-1.5 py-0.5 font-semibold tabular-nums",
+        "underline": "bg-aq-accent absolute rounded-full",
+        "underline.danger": "bg-aq-bad absolute rounded-full"
+      },
+      "example": "site/examples/Tabs.html",
+      "usage": "Use for object-detail pages with a 'header + tabbed body' layout (e.g. member detail); pair with a ?tab= query param for deep-linkable URL-synced tabs.",
+      "whenToReachFor": "You need a horizontal page-level tab strip with an animated underline (between vertical TabRail and compact SegmentedControl)."
+    },
+    {
+      "name": "TabRail",
+      "category": "navigation",
+      "tier": 1,
+      "import": "import { TabRail } from '@shared/ui'",
+      "source": "primitives/ui/TabRail/TabRail.tsx",
+      "summary": "A vertical tab rail for left-side in-page navigation, where the active row gets an accent-soft wash, accent-strong bold text, and a 2px spring-animated accent strip on its left edge.",
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "description": "Active item key; must match an items[].key."
+        },
+        {
+          "name": "onChange",
+          "type": "(next: string) => void",
+          "description": "Called with the next key when a row is picked."
+        },
+        {
+          "name": "items",
+          "type": "ReadonlyArray<TabRailItem>",
+          "description": "Rows in display order; TabRailItem = { key, label, icon? }."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "description": "Accessible label for the nav region."
+        }
+      ],
+      "tokens": [
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-accent-strong",
+        "aq-ink-soft",
+        "aq-zebra",
+        "aq-sm"
+      ],
+      "variantClasses": {
+        "nav": "flex w-full max-w-[220px] flex-col gap-0.5",
+        "row": "text-aq-sm relative flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-left",
+        "active": "bg-aq-accent-soft text-aq-accent-strong font-semibold",
+        "inactive": "text-aq-ink-soft hover:bg-aq-zebra",
+        "strip": "bg-aq-accent absolute top-1 bottom-1 left-0 w-0.5 rounded-full"
+      },
+      "example": "site/examples/TabRail.html",
+      "usage": "Use for 'single page, left nav, right detail' surfaces such as the /account settings layout; supply ordered items and sync value/onChange.",
+      "whenToReachFor": "You need a vertical in-page left-nav rail with an animated active-edge strip (rather than a horizontal tab strip)."
+    },
+    {
+      "name": "SegmentedControl",
+      "category": "inputs",
+      "tier": 1,
+      "import": "import { SegmentedControl } from '@shared/ui'",
+      "source": "primitives/ui/SegmentedControl/SegmentedControl.tsx",
+      "summary": "A compact, rounded radiogroup pill-strip for mutually exclusive choices, where the active segment is marked by a spring-animated lifted surface pill with a card shadow.",
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "description": "Current selected value (matches one of options[].value)."
+        },
+        {
+          "name": "onChange",
+          "type": "(next: string) => void",
+          "description": "Called with the next value when a segment is picked."
+        },
+        {
+          "name": "options",
+          "type": "ReadonlyArray<SegmentedOption>",
+          "description": "Options in display order; SegmentedOption = { value, label, icon? }."
+        },
+        {
+          "name": "size",
+          "type": "sm | md",
+          "default": "sm",
+          "description": "md adds a touch more horizontal padding."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "description": "Accessible group label."
+        }
+      ],
+      "tokens": [
+        "aq-zebra",
+        "aq-border",
+        "aq-ink",
+        "aq-ink-soft",
+        "aq-accent",
+        "aq-surface",
+        "aq-xs"
+      ],
+      "variantClasses": {
+        "group": "bg-aq-zebra border-aq-border inline-flex items-center gap-0.5 rounded-md border p-0.5",
+        "segment": "text-aq-xs relative inline-flex cursor-pointer items-center gap-1.5 rounded-md font-medium",
+        "active": "text-aq-ink",
+        "inactive": "text-aq-ink-soft hover:text-aq-ink",
+        "pill": "bg-aq-surface shadow-aq-card absolute inset-0 rounded-md",
+        "size.sm": "px-2.5 py-1",
+        "size.md": "px-3 py-1"
+      },
+      "example": "site/examples/SegmentedControl.html",
+      "usage": "Use for picker-style controls in dense surfaces (theme system/light/dark, density comfortable/compact, MFA method); fits next to a card title.",
+      "whenToReachFor": "You need a small, self-contained 'pick one of a few' segmented pill control inline in a dense surface."
+    },
+    {
+      "name": "Menu",
+      "category": "overlay",
+      "tier": 1,
+      "import": "import { Menu, MenuItem } from '@shared/ui'",
+      "source": "primitives/ui/Menu/Menu.tsx",
+      "summary": "Overflow-menu primitives: <Menu> is a vertical container (pair with <Popover> for anchoring) and <MenuItem> is a single actionable row with icon, shortcut, and default/danger tones.",
+      "props": [
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "description": "Menu: ARIA label when the menu has no visible heading."
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "description": "Menu: optional width in px (min 180)."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Menu: the MenuItem rows."
+        },
+        {
+          "name": "icon",
+          "type": "ComponentType<IconProps>",
+          "description": "MenuItem: leading icon."
+        },
+        {
+          "name": "tone",
+          "type": "default | danger",
+          "default": "default",
+          "description": "MenuItem: tone; danger red-tints destructive items."
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "MenuItem: disables the item."
+        },
+        {
+          "name": "shortcut",
+          "type": "string",
+          "description": "MenuItem: trailing keyboard-shortcut hint (mono)."
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "description": "MenuItem: click handler."
+        }
+      ],
+      "tokens": [
+        "aq-ink-soft",
+        "aq-ink",
+        "aq-ink-muted",
+        "aq-zebra",
+        "aq-bad",
+        "aq-bad-soft",
+        "aq-border",
+        "aq-surface",
+        "aq-sm",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "tone.default": "text-aq-ink-soft hover:bg-aq-zebra hover:text-aq-ink",
+        "tone.danger": "text-aq-bad hover:bg-aq-bad-soft",
+        "item": "text-aq-sm flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left font-medium transition-colors",
+        "shortcut": "text-aq-ink-muted text-aq-caption shrink-0 font-mono",
+        "container": "border-aq-border bg-aq-surface shadow-aq-popover flex flex-col gap-0.5 rounded-md border p-1"
+      },
+      "example": "site/examples/Menu.html",
+      "usage": "Compose <MenuItem> children inside <Menu> and anchor it with <Popover> for overflow/kebab menus. Use tone=danger for destructive actions and shortcut for keyboard hints.",
+      "whenToReachFor": "You need a dropdown/overflow action menu of clickable items (with optional icons, shortcuts, and a destructive variant)."
+    },
+    {
+      "name": "Modal",
+      "category": "overlay",
+      "tier": 1,
+      "import": "import { Modal, ModalPrimaryButton, ModalSecondaryButton } from '@shared/ui'",
+      "source": "primitives/ui/Modal/Modal.tsx",
+      "summary": "A centered overlay dialog (portal-rendered, Esc/backdrop close, body-scroll lock) for confirmations and short focused flows.",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Controls visibility."
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "description": "Called to close the dialog."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Heading text shown in the header."
+        },
+        {
+          "name": "tone",
+          "type": "accent | warn | bad | good | info",
+          "description": "Accepted for API stability; tone is conveyed by footer actions."
+        },
+        {
+          "name": "icon",
+          "type": "ComponentType<IconProps>",
+          "description": "Accepted for API stability; not rendered in the simplified header."
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "default": "560",
+          "description": "Max width in px."
+        },
+        {
+          "name": "footer",
+          "type": "ReactNode",
+          "description": "Action row rendered in the footer."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Body content."
+        }
+      ],
+      "tokens": [
+        "aq-scrim",
+        "aq-surface",
+        "aq-ink",
+        "aq-ink-muted",
+        "aq-zebra",
+        "aq-md"
+      ],
+      "variantClasses": {
+        "scrim": "bg-aq-scrim absolute inset-0 cursor-default backdrop-blur-sm",
+        "panel": "bg-aq-surface shadow-aq-modal relative flex max-h-[90vh] w-full flex-col rounded-xl",
+        "close": "text-aq-ink-muted hover:bg-aq-zebra hover:text-aq-ink absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-md",
+        "title": "text-aq-md m-0 font-bold",
+        "body": "flex-1 overflow-auto px-6 py-5",
+        "footer": "flex justify-end gap-2 px-6 pt-2 pb-5"
+      },
+      "example": "site/examples/Modal.html",
+      "usage": "Use for centered confirmation/short-flow dialogs (transfer ownership, delete confirms); place actions in the footer via ModalPrimaryButton/ModalSecondaryButton.",
+      "whenToReachFor": "You need a centered, focused confirmation or short modal flow rather than a side drawer."
+    },
+    {
+      "name": "SideModal",
+      "category": "overlay",
+      "tier": 1,
+      "import": "import { SideModal } from '@shared/ui'",
+      "source": "primitives/ui/SideModal/SideModal.tsx",
+      "summary": "A Notion-style right-side drawer (portal-rendered, Esc/backdrop close, body-scroll lock) for peek detail views with an optional 'Open as page' promotion.",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Controls visibility; when false nothing is rendered."
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "description": "Called on X, backdrop click, or Esc."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Heading at the top of the drawer."
+        },
+        {
+          "name": "onOpenFullPage",
+          "type": "() => void",
+          "description": "When provided, renders an 'Open as page' button to promote the peek to a full-page route."
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "default": "520",
+          "description": "Drawer width in px."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Scrollable body content."
+        }
+      ],
+      "tokens": [
+        "aq-scrim",
+        "aq-surface",
+        "aq-border",
+        "aq-ink-soft",
+        "aq-zebra",
+        "aq-md",
+        "aq-sm"
+      ],
+      "variantClasses": {
+        "scrim": "bg-aq-scrim absolute inset-0 cursor-default backdrop-blur-sm",
+        "panel": "bg-aq-surface border-aq-border shadow-aq-modal relative flex h-full flex-col border-l",
+        "header": "border-aq-border flex items-center gap-3 border-b px-5 py-3.5",
+        "title": "text-aq-md flex-1 truncate font-bold",
+        "openAsPage": "text-aq-ink-soft hover:bg-aq-zebra text-aq-sm flex items-center gap-1.5 rounded-md px-2 py-1 font-medium",
+        "close": "text-aq-ink-soft hover:bg-aq-zebra flex h-7 w-7 items-center justify-center rounded-md",
+        "body": "flex-1 overflow-auto p-5"
+      },
+      "example": "site/examples/SideModal.html",
+      "usage": "Use for 'peek' detail views (an agent row, an MCP server) where the surrounding registry context stays useful; pass onOpenFullPage to allow promotion to the detail route.",
+      "whenToReachFor": "You want to inspect an item's details in a slide-in drawer without leaving the current list/registry context."
+    },
+    {
+      "name": "Toggle",
+      "category": "inputs",
+      "tier": 1,
+      "import": "import { Toggle } from '@shared/ui'",
+      "source": "primitives/ui/Toggle/Toggle.tsx",
+      "summary": "An accessible pill switch rendered as a real <button role='switch'>, with a track that recolors on checked and a knob that slides 150ms (motion-safe).",
+      "props": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "description": "Current on/off state."
+        },
+        {
+          "name": "onChange",
+          "type": "(next: boolean) => void",
+          "description": "Called with the next state when toggled."
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Non-interactive, rendered at 50% opacity."
+        },
+        {
+          "name": "size",
+          "type": "sm | md",
+          "default": "md",
+          "description": "sm: 32x18 track/14px knob; md: 38x22 track/16px knob."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "description": "Accessible label for screen readers."
+        }
+      ],
+      "tokens": [
+        "aq-accent",
+        "aq-border",
+        "aq-surface"
+      ],
+      "variantClasses": {
+        "track": "relative inline-flex shrink-0 cursor-pointer items-center rounded-full",
+        "track.on": "bg-aq-accent",
+        "track.off": "bg-aq-border",
+        "knob": "bg-aq-surface shadow-aq-card absolute rounded-full motion-safe:transition-[left] motion-safe:duration-150"
+      },
+      "example": "site/examples/Toggle.html",
+      "usage": "Use for on/off settings; pass checked/onChange, choose size=sm for dense rows and md for card bodies, and always supply ariaLabel.",
+      "whenToReachFor": "You need an accessible boolean on/off switch."
+    },
+    {
+      "name": "ListRow",
+      "category": "data-display",
+      "tier": 1,
+      "import": "import { ListRow } from '@shared/ui'",
+      "source": "primitives/ui/ListRow/ListRow.tsx",
+      "summary": "The canonical row primitive for vertical item stacks, with leading/trailing slots, title/meta text, density control, and optional click-to-interactive behavior.",
+      "props": [
+        {
+          "name": "density",
+          "type": "cozy | compact",
+          "default": "cozy",
+          "description": "Vertical padding density."
+        },
+        {
+          "name": "leading",
+          "type": "ReactNode",
+          "description": "Leading slot (Avatar, icon, BrandIcon)."
+        },
+        {
+          "name": "trailing",
+          "type": "ReactNode",
+          "description": "Trailing slot (Chip, action cluster, arrow)."
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "description": "Primary line (semibold ink)."
+        },
+        {
+          "name": "meta",
+          "type": "ReactNode",
+          "description": "Secondary line (caption ink-muted)."
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "description": "When provided, the row becomes interactive (hover + trailing chevron)."
+        },
+        {
+          "name": "asCard",
+          "type": "boolean",
+          "default": "true",
+          "description": "Render as a card (own border + radius) vs inside a parent bordered list."
+        }
+      ],
+      "tokens": [
+        "aq-border",
+        "aq-surface",
+        "aq-zebra",
+        "aq-ink",
+        "aq-ink-muted",
+        "aq-sm",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "base": "flex items-center gap-3 px-3.5",
+        "density.cozy": "py-3",
+        "density.compact": "py-2",
+        "asCard": "border-aq-border bg-aq-surface rounded-lg border",
+        "asCard.false": "bg-aq-surface",
+        "clickable": "hover:bg-aq-zebra cursor-pointer transition-colors text-left w-full"
+      },
+      "example": "site/examples/ListRow.html",
+      "usage": "Use for any vertical stack of list items (join requests, sessions, devices, workspaces); set asCard={false} when rows sit inside a shared bordered container, and pass onClick to make the row navigate.",
+      "whenToReachFor": "You are rendering a list/stack of items each with a title, optional meta, and leading/trailing content."
+    },
+    {
+      "name": "SectionHeader",
+      "category": "layout",
+      "tier": 1,
+      "import": "import { SectionHeader } from '@shared/ui'",
+      "source": "primitives/ui/SectionHeader/SectionHeader.tsx",
+      "summary": "A content-block header with a colored tone icon chip, title, optional count pill, and optional trailing action link.",
+      "props": [
+        {
+          "name": "icon",
+          "type": "ComponentType<IconProps>",
+          "description": "Icon rendered in the tone-colored chip."
+        },
+        {
+          "name": "tone",
+          "type": "accent | good | warn | bad | info | neutral",
+          "default": "accent",
+          "description": "Color tone of the icon chip."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Section title text."
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "description": "Numeric count rendered as a small pill; omit to hide."
+        },
+        {
+          "name": "action",
+          "type": "string",
+          "description": "Trailing action label; omit to hide."
+        },
+        {
+          "name": "onAction",
+          "type": "() => void",
+          "description": "Click handler for the action."
+        }
+      ],
+      "tokens": [
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-good",
+        "aq-good-soft",
+        "aq-warn",
+        "aq-warn-soft",
+        "aq-bad",
+        "aq-bad-soft",
+        "aq-info",
+        "aq-info-soft",
+        "aq-zebra",
+        "aq-ink",
+        "aq-ink-soft",
+        "aq-border",
+        "aq-sm",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "tone.accent": "bg-aq-accent-soft text-aq-accent",
+        "tone.good": "bg-aq-good-soft text-aq-good",
+        "tone.warn": "bg-aq-warn-soft text-aq-warn",
+        "tone.bad": "bg-aq-bad-soft text-aq-bad",
+        "tone.info": "bg-aq-info-soft text-aq-info",
+        "tone.neutral": "bg-aq-zebra text-aq-ink-soft"
+      },
+      "example": "site/examples/SectionHeader.html",
+      "usage": "Use to head a logical block of content (Relationships groups, Roles distribution, Access section) with an icon, title, count, and optional 'View all' style action.",
+      "whenToReachFor": "You need a labeled section heading with an optional count and a trailing action affordance."
+    },
+    {
+      "name": "Stepper",
+      "category": "navigation",
+      "tier": 1,
+      "import": "import { Stepper } from '@shared/ui'",
+      "source": "primitives/ui/Stepper/Stepper.tsx",
+      "summary": "A horizontal sequence of wizard steps where each step is done / current / upcoming based on currentIndex.",
+      "props": [
+        {
+          "name": "steps",
+          "type": "ReadonlyArray<StepperStep>",
+          "description": "Ordered steps; StepperStep = { key, label }."
+        },
+        {
+          "name": "currentIndex",
+          "type": "number",
+          "description": "0-based index; steps before are done, at index is current, after is upcoming."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra classes on the wrapper."
+        }
+      ],
+      "tokens": [
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-accent-strong",
+        "aq-ink-on",
+        "aq-border",
+        "aq-surface",
+        "aq-ink-muted",
+        "aq-ink-soft",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "circle.done": "border-aq-accent bg-aq-accent text-aq-ink-on",
+        "circle.current": "border-aq-accent text-aq-accent-strong bg-aq-accent-soft",
+        "circle.upcoming": "border-aq-border bg-aq-surface text-aq-ink-muted",
+        "circle.base": "text-aq-caption flex h-5 w-5 items-center justify-center rounded-full border font-mono font-bold",
+        "label.current": "text-aq-accent-strong",
+        "label.done": "text-aq-ink-soft",
+        "label.upcoming": "text-aq-ink-muted",
+        "label.base": "text-aq-caption tracking-aq-wider font-semibold uppercase",
+        "connector": "bg-aq-border h-px w-6"
+      },
+      "example": "site/examples/Stepper.html",
+      "usage": "Use as a progress strip inside multi-step wizards (Create Team, Add Agent, onboarding) by passing the step list and the active currentIndex.",
+      "whenToReachFor": "You are building a multi-step wizard and need a horizontal progress indicator."
+    },
+    {
+      "name": "Breadcrumb",
+      "category": "navigation",
+      "tier": 1,
+      "import": "import { Breadcrumb } from '@shared/ui'",
+      "source": "primitives/ui/Breadcrumb/Breadcrumb.tsx",
+      "summary": "A horizontal chain of route crumbs where each crumb is static text, a navigating button, or a dropdown trigger, with the active crumb emphasized.",
+      "props": [
+        {
+          "name": "items",
+          "type": "ReadonlyArray<BreadcrumbItem>",
+          "description": "Crumbs; BreadcrumbItem = { key, label, onClick?, hasDropdown?, active? }."
+        },
+        {
+          "name": "separator",
+          "type": "ReactNode",
+          "default": "/",
+          "description": "Custom separator between crumbs."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra classes on the nav wrapper."
+        }
+      ],
+      "tokens": [
+        "aq-ink",
+        "aq-ink-muted",
+        "aq-xs",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "link": "text-aq-ink-muted hover:text-aq-ink text-aq-xs font-medium transition-colors",
+        "active": "text-aq-ink font-medium text-aq-xs",
+        "inactive": "text-aq-ink-muted text-aq-xs",
+        "separator": "text-aq-ink-muted text-aq-caption",
+        "list": "flex items-center gap-1.5"
+      },
+      "example": "site/examples/Breadcrumb.html",
+      "usage": "Use to show the current route's location as a chain of crumbs (as in DashboardShell), wiring onClick for navigable crumbs and hasDropdown for sibling-route menus.",
+      "whenToReachFor": "You need a route-location breadcrumb trail, optionally with navigable or dropdown crumbs."
+    },
+    {
+      "name": "PageState",
+      "category": "feedback",
+      "tier": 1,
+      "import": "import { PageState } from '@shared/ui'",
+      "source": "primitives/ui/PageState/PageState.tsx",
+      "summary": "An empty/loading/error/denied state card with an icon disc, headline, optional body, and optional CTA, with a staggered reveal animation.",
+      "props": [
+        {
+          "name": "state",
+          "type": "empty | loading | error | denied",
+          "description": "Which state the card represents; drives default icon and chip color."
+        },
+        {
+          "name": "icon",
+          "type": "ComponentType<IconProps>",
+          "description": "Override the default icon for this state."
+        },
+        {
+          "name": "headline",
+          "type": "string",
+          "description": "The bold headline text."
+        },
+        {
+          "name": "body",
+          "type": "ReactNode",
+          "description": "Supporting body content."
+        },
+        {
+          "name": "cta",
+          "type": "ReactNode",
+          "description": "Trailing action element (typically a Button)."
+        }
+      ],
+      "tokens": [
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-zebra",
+        "aq-ink",
+        "aq-ink-muted",
+        "aq-bad",
+        "aq-bad-soft",
+        "aq-warn",
+        "aq-warn-soft",
+        "aq-border",
+        "aq-surface",
+        "aq-md",
+        "aq-sm"
+      ],
+      "variantClasses": {
+        "state.empty": "bg-aq-accent-soft text-aq-accent",
+        "state.loading": "bg-aq-zebra text-aq-ink-muted",
+        "state.error": "bg-aq-bad-soft text-aq-bad",
+        "state.denied": "bg-aq-warn-soft text-aq-warn"
+      },
+      "example": "site/examples/PageState.html",
+      "usage": "Drop in as the body of a page or section when there is nothing to render or a fetch is loading/failed/forbidden; pass a headline and optional body/CTA, optionally overriding the icon.",
+      "whenToReachFor": "A screen needs a centered empty/loading/error/access-denied placeholder instead of hand-rolling a state card."
+    },
+    {
+      "name": "Tooltip",
+      "category": "overlay",
+      "tier": 1,
+      "import": "import { Tooltip } from '@shared/ui'",
+      "source": "primitives/ui/Tooltip/Tooltip.tsx",
+      "summary": "A hover/focus hint that portals to <body> and positions itself above (or flips below) a single trigger child, fading and scaling in after a delay.",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "description": "Tooltip text; when empty the trigger renders with no tooltip."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "The trigger element (a single focusable child)."
+        },
+        {
+          "name": "placement",
+          "type": "top | bottom",
+          "default": "top",
+          "description": "Preferred side; flips when it would clip."
+        },
+        {
+          "name": "delayMs",
+          "type": "number",
+          "default": "120",
+          "description": "Open delay in milliseconds."
+        }
+      ],
+      "tokens": [
+        "aq-ink",
+        "aq-surface",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "tip": "bg-aq-ink text-aq-surface text-aq-caption shadow-aq-popover pointer-events-none fixed z-[70] max-w-[240px] rounded-md px-2 py-1 font-medium"
+      },
+      "example": "site/examples/Tooltip.html",
+      "usage": "Wrap any focusable element to attach a short hover/focus hint; keep the label brief since it is width-capped at 240px.",
+      "whenToReachFor": "An icon button or truncated label needs a short explanatory hint on hover/focus."
+    },
+    {
+      "name": "Avatar",
+      "category": "data-display",
+      "tier": 1,
+      "import": "import { Avatar } from '@shared/ui'",
+      "source": "primitives/ui/Avatar/Avatar.tsx",
+      "summary": "A person avatar that renders a deterministic image keyed by email/name and falls back to a colored initials disc on load failure, with an optional hover lift.",
+      "props": [
+        {
+          "name": "email",
+          "type": "string",
+          "description": "Hash seed for the image URL; preferred over name."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Display name used for alt text and initials fallback."
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "default": "28",
+          "description": "Edge length in px."
+        },
+        {
+          "name": "shape",
+          "type": "circle | rounded",
+          "default": "circle",
+          "description": "Visual shape."
+        },
+        {
+          "name": "lift",
+          "type": "boolean",
+          "default": "true",
+          "description": "Adds a subtle hover lift (for avatar rows/stacks)."
+        }
+      ],
+      "tokens": [
+        "aq-accent-soft",
+        "aq-accent-strong",
+        "aq-good",
+        "aq-good-soft",
+        "aq-warn",
+        "aq-warn-soft",
+        "aq-bad",
+        "aq-bad-soft",
+        "aq-zebra",
+        "aq-caption"
+      ],
+      "variantClasses": {
+        "fallback.0": "bg-aq-accent-soft text-aq-accent-strong",
+        "fallback.1": "bg-aq-good-soft text-aq-good",
+        "fallback.2": "bg-aq-warn-soft text-aq-warn",
+        "fallback.3": "bg-aq-bad-soft text-aq-bad",
+        "shape.circle": "rounded-full",
+        "shape.rounded": "rounded-md"
+      },
+      "example": "site/examples/Avatar.html",
+      "usage": "Use anywhere a person appears (owner columns, activity feed, audit log, comment threads); pass email (preferred) or name so the same user always renders consistently.",
+      "whenToReachFor": "You need a user profile picture with a reliable initials fallback."
+    },
+    {
+      "name": "OrgAvatar",
+      "category": "data-display",
+      "tier": 1,
+      "import": "import { OrgAvatar } from '@shared/ui'",
+      "source": "primitives/ui/OrgAvatar/OrgAvatar.tsx",
+      "summary": "A colored square brand mark showing an organization's initials, with a token-bound background color and size-derived corner radius.",
+      "props": [
+        {
+          "name": "org",
+          "type": "{ initials: string; color: accent | info | good | warn }",
+          "description": "The org's initials and color family."
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "default": "24",
+          "description": "Edge length in px."
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "default": "round(size * 0.3)",
+          "description": "Override the corner radius in px."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Optional extra classes."
+        }
+      ],
+      "tokens": [
+        "aq-accent",
+        "aq-info",
+        "aq-good",
+        "aq-warn",
+        "aq-ink-on"
+      ],
+      "variantClasses": {
+        "color.accent": "bg-aq-accent",
+        "color.info": "bg-aq-info",
+        "color.good": "bg-aq-good",
+        "color.warn": "bg-aq-warn"
+      },
+      "example": "site/examples/OrgAvatar.html",
+      "usage": "Use in the org picker, join-request screens, invite acceptance, and the org switcher anywhere an org needs a tiny brand mark; pass { initials, color }.",
+      "whenToReachFor": "You need a small colored org identity square (initials) rather than a person's avatar."
+    },
+    {
+      "name": "Popover",
+      "category": "overlay",
+      "tier": 1,
+      "import": "import { Popover } from '@shared/ui'",
+      "source": "primitives/ui/Popover/Popover.tsx",
+      "summary": "An accessible anchor-relative overlay that portals to <body>, positions itself at a placement relative to an anchorRef, and closes on Esc/outside-click with focus management.",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Controls visibility; when false nothing is rendered."
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "description": "Called on dismiss (Esc or outside-click)."
+        },
+        {
+          "name": "anchorRef",
+          "type": "RefObject<HTMLElement | null>",
+          "description": "The element the popover anchors to."
+        },
+        {
+          "name": "placement",
+          "type": "bottom-end | bottom-start | bottom-center | top-end | top-start",
+          "default": "bottom-end",
+          "description": "Where the panel sits relative to the anchor."
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "description": "Fixed panel width in px (else sizes to content)."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "description": "Accessibility label for the panel container."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Panel content."
+        }
+      ],
+      "tokens": [
+        "aq-surface",
+        "aq-border"
+      ],
+      "variantClasses": {
+        "panel": "bg-aq-surface border-aq-border shadow-aq-popover fixed z-50 rounded-lg border outline-none"
+      },
+      "example": "site/examples/Popover.html",
+      "usage": "Use for dropdown-style overlays anchored to a trigger (account menu, notifications, role switcher) where a full modal would be too heavy; control open yourself and pass the trigger's ref as anchorRef.",
+      "whenToReachFor": "You need a positioned, dismissible dropdown/panel attached to an on-page anchor element."
+    },
+    {
+      "name": "ViewToggle",
+      "category": "navigation",
+      "tier": 2,
+      "import": "import { ViewToggle } from '@shared/ui'",
+      "source": "primitives/ui/ViewToggle/ViewToggle.tsx",
+      "summary": "Icon-only two-segment toggle (grid + list) for switching a registry between card-grid and list/table views.",
+      "props": [
+        {
+          "name": "value",
+          "type": "grid | list",
+          "description": "Currently active view."
+        },
+        {
+          "name": "onChange",
+          "type": "(next: ViewMode) => void",
+          "description": "Called with the next view when a segment is picked."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "View mode",
+          "description": "Accessible group label."
+        }
+      ],
+      "tokens": [
+        "aq-zebra",
+        "aq-border",
+        "aq-accent",
+        "aq-surface",
+        "aq-ink",
+        "aq-ink-muted"
+      ],
+      "usage": "Drop next to a list page's 'Add' CTA to flip between grid and list layouts; controlled, so the route owns the ViewMode state.",
+      "whenToReachFor": "You need a compact, label-less grid-vs-list switch where horizontal room is tight."
+    },
+    {
+      "name": "SortControl",
+      "category": "navigation",
+      "tier": 2,
+      "import": "import { SortControl } from '@shared/ui'",
+      "source": "primitives/ui/SortControl/SortControl.tsx",
+      "summary": "Compact 'Sort: {key}' dropdown plus an asc/desc direction toggle for list pages.",
+      "props": [
+        {
+          "name": "options",
+          "type": "ReadonlyArray<SortOption<K>>",
+          "description": "Available sort keys ({ value, label })."
+        },
+        {
+          "name": "value",
+          "type": "K extends string",
+          "description": "Currently selected sort key."
+        },
+        {
+          "name": "direction",
+          "type": "asc | desc",
+          "description": "Current sort direction."
+        },
+        {
+          "name": "onChange",
+          "type": "(value: K, direction: SortDirection) => void",
+          "description": "Called with the next key or direction."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "Sort",
+          "description": "Accessible label for the menu."
+        }
+      ],
+      "tokens": [
+        "aq-border",
+        "aq-surface",
+        "aq-ink",
+        "aq-ink-soft",
+        "aq-ink-muted",
+        "aq-zebra",
+        "aq-caption"
+      ],
+      "usage": "Place inside a ListToolbar's left control group; presentational/controlled, the route does the actual comparison. Reuses Popover + MenuItem for the key menu.",
+      "whenToReachFor": "A list needs a user-pickable sort key with an ascending/descending flip."
+    },
+    {
+      "name": "ListToolbar",
+      "category": "navigation",
+      "tier": 2,
+      "import": "import { ListToolbar } from '@shared/ui'",
+      "source": "primitives/ui/ListToolbar/ListToolbar.tsx",
+      "summary": "The single unified controls row (tabs + filter + sort + search + count + view toggle + active-filter chips) for every list/registry/table page, in standard or ghost presentation.",
+      "props": [
+        {
+          "name": "variant",
+          "type": "standard | ghost",
+          "default": "standard",
+          "description": "Visual presentation; ghost docks an icon trio beside the tab strip."
+        },
+        {
+          "name": "ghostScale",
+          "type": "md | lg",
+          "default": "md",
+          "description": "Ghost-trio size; lg reads heavier to balance a tab strip."
+        },
+        {
+          "name": "tabs",
+          "type": "ListToolbarTabs",
+          "description": "First-class tab strip { items, value, onChange, ariaLabel? }."
+        },
+        {
+          "name": "filter",
+          "type": "ListToolbarFilter",
+          "description": "Filter facets + toggles { facets, toggles?, onClearAll }."
+        },
+        {
+          "name": "sort",
+          "type": "SortControlProps",
+          "description": "Sort config forwarded to SortControl."
+        },
+        {
+          "name": "search",
+          "type": "ListToolbarSearch",
+          "description": "Search field state { value, onChange, placeholder? }."
+        },
+        {
+          "name": "view",
+          "type": "ListToolbarView",
+          "description": "Grid/list view toggle state { value, onChange, ariaLabel? }."
+        },
+        {
+          "name": "count",
+          "type": "ListToolbarCount",
+          "description": "'N of M' count display { shown, total, noun? }."
+        },
+        {
+          "name": "leading",
+          "type": "ReactNode",
+          "description": "Page-specific controls pinned far left."
+        },
+        {
+          "name": "trailing",
+          "type": "ReactNode",
+          "description": "Page-specific controls pinned right, before the view toggle."
+        }
+      ],
+      "tokens": [
+        "aq-border",
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-accent-strong",
+        "aq-ink",
+        "aq-ink-soft",
+        "aq-ink-muted",
+        "aq-ink-faint",
+        "aq-surface",
+        "aq-zebra",
+        "aq-bad",
+        "aq-caption",
+        "aq-sm"
+      ],
+      "usage": "Compose it as the controls row above any collection; it is presentational and controlled (the route owns tab/filter/search/sort/view state and does the filtering). Active-filter chips auto-render on a thin row beneath when set.",
+      "whenToReachFor": "Any list/table/registry page needs its standard filter/sort/search/view header instead of ad-hoc chip rows or one-off controls."
+    },
+    {
+      "name": "TabToolbar",
+      "category": "navigation",
+      "tier": 2,
+      "import": "import { TabToolbar } from '@shared/ui'",
+      "source": "primitives/ui/TabToolbar/TabToolbar.tsx",
+      "summary": "Thin preset over ListToolbar locked to the ghost presentation at lg scale, giving the standard 'tab strip + ghost control trio' collection-page header.",
+      "props": [
+        {
+          "name": "...props",
+          "type": "Omit<ListToolbarProps, 'variant' | 'ghostScale'>",
+          "description": "Every ListToolbar prop except variant/ghostScale, which are fixed; pass tabs for the left strip and the rest forwards through."
+        }
+      ],
+      "tokens": [
+        "aq-border",
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-ink-soft",
+        "aq-surface",
+        "aq-zebra"
+      ],
+      "usage": "Use it instead of ListToolbar on standard collection pages (Plans, Agents, MCP, Policies) so every page gets the identical tab+trio shape without re-deciding variant/ghostScale.",
+      "whenToReachFor": "A collection page wants the canonical tab-led header and you don't want to hand-tune ListToolbar's ghost knobs."
+    },
+    {
+      "name": "OTPInput",
+      "category": "inputs",
+      "tier": 2,
+      "import": "import { OTPInput } from '@shared/ui'",
+      "source": "primitives/ui/OTPInput/OTPInput.tsx",
+      "summary": "Boxed one-digit-per-cell input for short codes (default 6 boxes), with auto-tab, paste distribution, and an error shake.",
+      "props": [
+        {
+          "name": "length",
+          "type": "number",
+          "default": "6",
+          "description": "Number of boxes."
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "description": "Joined digit string."
+        },
+        {
+          "name": "onChange",
+          "type": "(next: string) => void",
+          "description": "Fires on any box change with the joined string."
+        },
+        {
+          "name": "onComplete",
+          "type": "(full: string) => void",
+          "description": "Fires when every box is filled."
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables all boxes."
+        },
+        {
+          "name": "error",
+          "type": "boolean",
+          "default": "false",
+          "description": "Visual error state; boxes go border-aq-bad and the row shakes."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "One-time code",
+          "description": "Aria-label for the group."
+        },
+        {
+          "name": "autoFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Focus the first empty box on mount."
+        }
+      ],
+      "tokens": [
+        "aq-surface",
+        "aq-ink",
+        "aq-bad",
+        "aq-border",
+        "aq-accent",
+        "aq-h2"
+      ],
+      "usage": "Use on auth/verify, MFA challenge, and reset flows; controlled (parent owns the value string) with auto-tab and full-string paste support.",
+      "whenToReachFor": "You need a one-time-code / PIN entry split into per-digit cells."
+    },
+    {
+      "name": "PasswordStrengthMeter",
+      "category": "feedback",
+      "tier": 2,
+      "import": "import { PasswordStrengthMeter, scorePassword } from '@shared/ui'",
+      "source": "primitives/ui/PasswordStrengthMeter/PasswordStrengthMeter.tsx",
+      "summary": "Subtle one-line password strength bar (0-100% fill) with a right-aligned Weak/Okay/Good/Strong label; renders nothing while the password is empty.",
+      "props": [
+        {
+          "name": "password",
+          "type": "string",
+          "description": "The password to score (via scorePassword)."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Appended to the outer wrapper."
+        }
+      ],
+      "tokens": [
+        "aq-bad",
+        "aq-warn",
+        "aq-good",
+        "aq-zebra",
+        "aq-ink-muted",
+        "aq-caption"
+      ],
+      "usage": "Place directly under a password field on signup/reset; it self-scores and stays hidden until the user starts typing. Scoring is reusable via the co-exported scorePassword.",
+      "whenToReachFor": "A new-password field needs a calm, inline strength indicator."
+    },
+    {
+      "name": "Collapsible",
+      "category": "motion",
+      "tier": 2,
+      "import": "import { Collapsible } from '@shared/ui'",
+      "source": "primitives/ui/Collapsible/Collapsible.tsx",
+      "summary": "Height-tweens a region open/closed (auto to 0) with overflow clipped, honoring prefers-reduced-motion.",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Whether the region is expanded."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "The content to reveal/hide."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra classes on the animated wrapper."
+        }
+      ],
+      "tokens": [],
+      "usage": "Wrap expand/collapse rows, 'show more' sections, and accordion bodies so the container grows smoothly instead of jumping.",
+      "whenToReachFor": "Content needs to expand/collapse with a smooth height animation rather than an instant show/hide."
+    },
+    {
+      "name": "UploadTarget",
+      "category": "inputs",
+      "tier": 2,
+      "import": "import { UploadTarget } from '@shared/ui'",
+      "source": "primitives/ui/UploadTarget/UploadTarget.tsx",
+      "summary": "A clickable avatar (image or initials-disc fallback) with a hover upload overlay and hidden image-only file input.",
+      "props": [
+        {
+          "name": "src",
+          "type": "string",
+          "description": "Current image URL; absent shows the initials fallback."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Display name used for initials + alt text."
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "default": "64",
+          "description": "Edge length in px."
+        },
+        {
+          "name": "onUpload",
+          "type": "(file: File) => void",
+          "description": "Fires when the user picks a file (forwards only; parent stores/previews)."
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "description": "Small caption shown to the right of the avatar."
+        }
+      ],
+      "tokens": [
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-accent-strong",
+        "aq-good",
+        "aq-good-soft",
+        "aq-warn",
+        "aq-warn-soft",
+        "aq-bad",
+        "aq-bad-soft",
+        "aq-ink-panel",
+        "aq-ink-on",
+        "aq-ink-muted",
+        "aq-xs"
+      ],
+      "usage": "Use on a Profile card to let a user swap their portrait; click anywhere on the avatar opens an image-only picker and onUpload(file) fires.",
+      "whenToReachFor": "A screen needs an avatar that doubles as an image-upload affordance."
+    },
+    {
+      "name": "GradientButton",
+      "category": "actions",
+      "tier": 2,
+      "import": "import { GradientButton } from '@shared/ui'",
+      "source": "primitives/ui/GradientButton/GradientButton.tsx",
+      "summary": "The single 'AI authoring' button, distinguished by the system's only gradient (aq-ai-from to aq-ai-to) with a loading spinner.",
+      "props": [
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "description": "Click handler."
+        },
+        {
+          "name": "leading",
+          "type": "ComponentType<IconProps>",
+          "description": "Optional leading icon component."
+        },
+        {
+          "name": "size",
+          "type": "sm | md",
+          "default": "sm",
+          "description": "Padding/text/icon scale."
+        },
+        {
+          "name": "type",
+          "type": "button | submit",
+          "default": "button",
+          "description": "Native button type."
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the button."
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows spinner, sets aria-busy, disables interaction."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Button label."
+        }
+      ],
+      "tokens": [
+        "aq-ai-from",
+        "aq-ai-to",
+        "aq-ink-on",
+        "aq-caption"
+      ],
+      "usage": "Use exclusively for AI affordances (policy intent AI row, PolicyStudio header); forwardRef'd. The gradient is reserved for AI and used nowhere else.",
+      "whenToReachFor": "An action invokes AI generation/authoring and should read as the system's one distinct AI button."
+    },
+    {
+      "name": "BrandIcon",
+      "category": "brand",
+      "tier": 2,
+      "import": "import { BrandIcon } from '@shared/ui'",
+      "source": "primitives/ui/BrandIcon/BrandIcon.tsx",
+      "summary": "Renders a provider/tool logo from iconify's simple-icons, falling back to a 2-letter neutral square on load failure.",
+      "props": [
+        {
+          "name": "slug",
+          "type": "string",
+          "description": "simple-icons slug, e.g. 'github', 'slack', 'openai'."
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "default": "20",
+          "description": "Edge length in px."
+        },
+        {
+          "name": "color",
+          "type": "string",
+          "default": "--color-aq-ink",
+          "description": "Tint passed to iconify."
+        },
+        {
+          "name": "fallback",
+          "type": "string",
+          "default": "first 2 chars of slug, uppercased",
+          "description": "Letters shown in the fallback square."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra classes on the wrapper span."
+        }
+      ],
+      "tokens": [
+        "aq-zebra",
+        "aq-ink",
+        "aq-ink-soft",
+        "aq-caption"
+      ],
+      "usage": "Use wherever an MCP server, OAuth provider, or third-party tool logo appears in lists/cards; a bad slug degrades to initials instead of breaking layout.",
+      "whenToReachFor": "You need a third-party brand/provider logo by slug with a safe fallback."
+    },
+    {
+      "name": "SandboxPill",
+      "category": "data-display",
+      "tier": 2,
+      "import": "import { SandboxPill } from '@shared/ui'",
+      "source": "primitives/ui/SandboxPill/SandboxPill.tsx",
+      "summary": "Tiny pill surfacing an org's mode: 'Demo' (sandbox) or spinning 'Activating' in info tone; renders nothing for production.",
+      "props": [
+        {
+          "name": "mode",
+          "type": "sandbox | production | activating",
+          "description": "Org mode; production returns null."
+        },
+        {
+          "name": "size",
+          "type": "sm | md",
+          "default": "sm",
+          "description": "Pill scale."
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Demo / Activating",
+          "description": "Override the default label."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra wrapper classes."
+        }
+      ],
+      "tokens": [
+        "aq-info",
+        "aq-info-soft",
+        "aq-caption",
+        "aq-xs"
+      ],
+      "usage": "Drop into chrome (org switcher/header) to flag a sandbox/demo or activating org; controlled by mode and silently hides in production.",
+      "whenToReachFor": "You need to badge an org/environment as demo or activating without cluttering production."
+    },
+    {
+      "name": "DesktopRecommendedBanner",
+      "category": "feedback",
+      "tier": 2,
+      "import": "import { DesktopRecommendedBanner } from '@shared/ui'",
+      "source": "primitives/ui/DesktopRecommendedBanner/DesktopRecommendedBanner.tsx",
+      "summary": "A 'best on desktop' advisory banner shown on authoring/dense screens when viewed below the lg breakpoint.",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra wrapper classes."
+        }
+      ],
+      "tokens": [
+        "aq-info",
+        "aq-info-soft",
+        "aq-sm"
+      ],
+      "usage": "Render at the top of authoring or dense table screens to advise users that the experience is best on a desktop viewport.",
+      "whenToReachFor": "An authoring/dense screen is being used on a small viewport and needs a 'best on desktop' advisory. See source."
+    },
+    {
+      "name": "Loader",
+      "category": "feedback",
+      "tier": 2,
+      "import": "import { MatrixLoader } from '@shared/ui'",
+      "source": "primitives/ui/MatrixLoader/MatrixLoader.tsx",
+      "summary": "There is no standalone Loader component; the canonical loader primitive is MatrixLoader, an animated 5x5 dot-matrix indicator in brand orange. (The Loader/ folder holds only a preview HTML.)",
+      "props": [
+        {
+          "name": "pattern",
+          "type": "wave | pulse | sweep | orbit",
+          "default": "wave",
+          "description": "Animation pattern (generic / analysis / AI-thinking / fetch-scanning)."
+        },
+        {
+          "name": "size",
+          "type": "sm | md | lg",
+          "default": "md",
+          "description": "Matrix size (20/28/40 px)."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra classes on the svg."
+        }
+      ],
+      "tokens": [],
+      "usage": "Use as the in-app loading/processing indicator (import MatrixLoader); color inherits via currentColor for light+dark. This entry exists because the spec lists 'Loader' as a name; it resolves to MatrixLoader.",
+      "whenToReachFor": "You need a branded loading/processing animation rather than a plain spinner. Use MatrixLoader."
+    },
+    {
+      "name": "CommandPalette",
+      "category": "overlay",
+      "tier": 3,
+      "import": "import { CommandPalette, fuzzyMatch, useCommandPaletteShortcut } from '@shared/ui'",
+      "source": "primitives/ui/CommandPalette/CommandPalette.tsx",
+      "summary": "A centered, portal-rendered modal overlay shell for global search / command surfaces that the caller fills with an input row and a scrollable result list. Complex / see source.",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Controls visibility; renders nothing when false."
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "description": "Called on dismiss (Esc or backdrop click)."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Palette contents (input + scrollable list)."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "Command palette",
+          "description": "Accessibility label for the dialog."
+        }
+      ],
+      "tokens": [
+        "aq-ink-panel",
+        "aq-surface",
+        "aq-border"
+      ],
+      "usage": "Wrap a controlled command surface; it owns backdrop dimming, Esc-to-close, body scroll lock, and portal rendering, while the caller supplies the input and result list and their keyboard nav.",
+      "whenToReachFor": "Build any global search / command-K style palette. Complex / see source."
+    },
+    {
+      "name": "GraphNode",
+      "category": "data-display",
+      "tier": 3,
+      "import": "import { GraphNodeShape } from '@shared/ui'",
+      "source": "primitives/ui/GraphNode/GraphNodeShape.tsx",
+      "summary": "A presentation-only, fully-parameterised circular graph-node body (ring, glyph, optional status dot / governance crown / count badge, two-line label) shared by the AIQ graph and the Plans flow canvas. Complex / see source.",
+      "props": [
+        {
+          "name": "radius",
+          "type": "number",
+          "description": "Circle radius in px; drives all geometry."
+        },
+        {
+          "name": "ringStrokeClass",
+          "type": "string",
+          "description": "Ring stroke token class (e.g. stroke-aq-node-plan/55)."
+        },
+        {
+          "name": "glyphTextClass",
+          "type": "string",
+          "description": "Glyph/icon stroke token class."
+        },
+        {
+          "name": "glyph",
+          "type": "ReactNode",
+          "description": "Monoline glyph drawn into a 24x24 viewBox."
+        },
+        {
+          "name": "isHero",
+          "type": "boolean",
+          "default": "false",
+          "description": "Hero nodes layer a soft colour wash on the white base."
+        },
+        {
+          "name": "governed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Draws the governance crown above the node."
+        },
+        {
+          "name": "badge",
+          "type": "number",
+          "description": "Optional live-count badge (bottom-right)."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Primary label under the node."
+        },
+        {
+          "name": "sublabel",
+          "type": "string",
+          "description": "Mono uppercase sublabel."
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "default": "false",
+          "description": "Selection halo."
+        },
+        {
+          "name": "dim",
+          "type": "boolean",
+          "default": "false",
+          "description": "Dims node (outside blast radius / not in focus)."
+        }
+      ],
+      "tokens": [
+        "aq-node-agent",
+        "aq-node-governed",
+        "aq-node-plan",
+        "aq-edge-hot",
+        "aq-good",
+        "aq-ink",
+        "aq-ink-muted",
+        "aq-surface"
+      ],
+      "usage": "Render inside a React Flow node component; the caller resolves all hue/token class strings from node-config and passes them in so no graph-domain types leak into the shape.",
+      "whenToReachFor": "You need the canonical circular node body on a React Flow canvas. Complex / see source."
+    },
+    {
+      "name": "ProductTour",
+      "category": "overlay",
+      "tier": 3,
+      "import": "import { ProductTour } from '@shared/ui'",
+      "source": "primitives/ui/ProductTour/ProductTour.tsx",
+      "summary": "A dependency-free, fully-controlled spotlight walkthrough that dims the page with aq-scrim panels, cuts a clickable hole over each step's [data-tour] anchor, and shows a tooltip card beside it. Complex / see source.",
+      "props": [
+        {
+          "name": "steps",
+          "type": "ReadonlyArray<ProductTourStep>",
+          "description": "Ordered tour steps (anchor, title, body, placement?, padding?, cta?, advanceOnAnchorClick?)."
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Whether the tour is shown."
+        },
+        {
+          "name": "stepIndex",
+          "type": "number",
+          "description": "Current step (host-owned)."
+        },
+        {
+          "name": "onStepChange",
+          "type": "(next: number) => void",
+          "description": "Advance/back callback."
+        },
+        {
+          "name": "onFinish",
+          "type": "() => void",
+          "description": "Fires when the tour completes."
+        },
+        {
+          "name": "onSkip",
+          "type": "() => void",
+          "description": "Fires when the user skips."
+        }
+      ],
+      "tokens": [
+        "aq-scrim",
+        "aq-surface",
+        "aq-border",
+        "aq-ink",
+        "aq-ink-soft",
+        "aq-ink-muted",
+        "aq-zebra",
+        "aq-caption",
+        "aq-sm",
+        "aq-md"
+      ],
+      "usage": "Host owns open + stepIndex; pass steps whose anchors match data-tour attributes on real UI; the hole stays live so steps can ask the user to click a real button before advancing.",
+      "whenToReachFor": "Build a guided first-run / feature walkthrough over live page elements. Complex / see source."
+    },
+    {
+      "name": "WelcomeDialog",
+      "category": "overlay",
+      "tier": 3,
+      "import": "import { WelcomeDialog } from '@shared/ui'",
+      "source": "primitives/ui/WelcomeDialog/WelcomeDialog.tsx",
+      "summary": "The first-run 'welcome aboard' portal dialog for a freshly provisioned owner, with Framer Motion choreography and a self-sequencing exit that fires its callback only after the exit animation completes. Complex / see source.",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Visibility."
+        },
+        {
+          "name": "orgName",
+          "type": "string",
+          "description": "Workspace name for the greeting; falls back to 'Welcome to ArmorIQ'."
+        },
+        {
+          "name": "onTakeTour",
+          "type": "() => void",
+          "description": "Fires after exit animation when the user picks the tour."
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "description": "Fires after exit animation on dismiss / explore-alone."
+        }
+      ],
+      "tokens": [
+        "aq-scrim",
+        "aq-surface",
+        "aq-accent-soft",
+        "aq-accent-strong"
+      ],
+      "usage": "Render once on first landing on Plans; the CTAs trigger the card's exit animation and the chosen callback fires on onExitComplete, so the welcome is fully gone before the tour spotlight animates in.",
+      "whenToReachFor": "The one-time onboarding greeting that launches the guided tour. Complex / see source."
+    },
+    {
+      "name": "CanvasModal",
+      "category": "overlay",
+      "tier": 3,
+      "import": "import { CanvasModal } from '@shared/ui'",
+      "source": "primitives/ui/CanvasModal/CanvasModal.tsx",
+      "summary": "An almost-full-screen (92vw x 88vh) portal modal over a blurred scrim that hosts an infinite canvas passed as children, with an eyebrow/title header and optional right slot. Complex / see source.",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Visibility."
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "description": "Esc / backdrop-click close."
+        },
+        {
+          "name": "eyebrow",
+          "type": "string",
+          "description": "Uppercase header eyebrow."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Header title (also aria-label)."
+        },
+        {
+          "name": "headerRight",
+          "type": "ReactNode",
+          "description": "Right-aligned header slot (e.g. a status badge)."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "The canvas; fills the modal body."
+        }
+      ],
+      "tokens": [
+        "aq-scrim",
+        "aq-surface",
+        "aq-border",
+        "aq-ink-muted",
+        "aq-ink-soft",
+        "aq-zebra",
+        "aq-caption",
+        "aq-md"
+      ],
+      "usage": "Wrap a Plans flow or Discovery topology canvas for its expanded full-screen view; Esc or backdrop click closes and body scroll locks while open.",
+      "whenToReachFor": "Give an inline canvas a shared full-screen expanded mode. Complex / see source."
+    },
+    {
+      "name": "CanvasDetailCard",
+      "category": "overlay",
+      "tier": 3,
+      "import": "import { CanvasDetailCard } from '@shared/ui'",
+      "source": "primitives/ui/CanvasDetailCard/CanvasDetailCard.tsx",
+      "summary": "A pinned detail panel absolutely positioned against the right edge of a relative canvas wrapper (outside the canvas transform, so it doesn't pan/zoom), with an icon/eyebrow/title header, scrollable body, and optional sticky footer. Complex / see source.",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Renders only when true."
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "description": "Close callback."
+        },
+        {
+          "name": "eyebrow",
+          "type": "string",
+          "description": "Header eyebrow (e.g. node kind)."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Header title."
+        },
+        {
+          "name": "icon",
+          "type": "ComponentType<IconProps>",
+          "description": "Optional header icon chip."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "Scrollable body."
+        },
+        {
+          "name": "footer",
+          "type": "ReactNode",
+          "description": "Optional sticky footer (e.g. a primary action)."
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "default": "320",
+          "description": "Card width in px."
+        }
+      ],
+      "tokens": [
+        "aq-border",
+        "aq-surface",
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-ink",
+        "aq-ink-soft",
+        "aq-ink-muted",
+        "aq-zebra",
+        "aq-caption",
+        "aq-md"
+      ],
+      "usage": "Place inside the same relative wrapper as a canvas (inline or inside CanvasModal); shows node/element detail without moving with the graph.",
+      "whenToReachFor": "Show a node's detail panel pinned to the edge of any canvas. Complex / see source."
+    },
+    {
+      "name": "IapCard",
+      "category": "data-display",
+      "tier": 3,
+      "import": "import { IapCard } from '@shared/ui'",
+      "source": "primitives/ui/IapCard/IapCard.tsx",
+      "summary": "The canonical Intent Approval Prompt review card: agent to tool to MCP header with risk pill and trust score, a mono key/value arguments grid, a policy verdict line, and an approve/reject action row (or a ledger line once decided). Complex / see source.",
+      "props": [
+        {
+          "name": "iap",
+          "type": "IapShape",
+          "description": "The IAP data (id, agent, agentSlug?, tool, mcp, mcpSlug, risk, trustScore, arguments, riskNote)."
+        },
+        {
+          "name": "verdict",
+          "type": "pending | approved | rejected",
+          "description": "Drives the action row vs ledger state."
+        },
+        {
+          "name": "onApprove",
+          "type": "() => void",
+          "description": "Approve handler."
+        },
+        {
+          "name": "onReject",
+          "type": "() => void",
+          "description": "Reject handler."
+        },
+        {
+          "name": "evidenceRef",
+          "type": "string",
+          "default": "derived from iap.id",
+          "description": "Ledger reference shown next to Approved/Denied."
+        }
+      ],
+      "tokens": [
+        "aq-border",
+        "aq-surface",
+        "aq-accent",
+        "aq-accent-soft",
+        "aq-ink",
+        "aq-ink-soft",
+        "aq-ink-muted",
+        "aq-good",
+        "aq-bad",
+        "aq-zebra",
+        "aq-caption",
+        "aq-md",
+        "aq-sm",
+        "aq-xs"
+      ],
+      "usage": "Single source of truth for rendering an IAP to a human reviewer; used in the intent-plans dashboard detail/peek and the onboarding live moment.",
+      "whenToReachFor": "Anywhere an agent's tool-call intent must be reviewed and approved/rejected. Complex / see source."
+    },
+    {
+      "name": "MatrixLoader",
+      "category": "motion",
+      "tier": 3,
+      "import": "import { MatrixLoader } from '@shared/ui'",
+      "source": "primitives/ui/MatrixLoader/MatrixLoader.tsx",
+      "summary": "An animated 5x5 dot-matrix loading indicator in ArmorIQ brand orange with four motion patterns (wave / pulse / sweep / orbit) and three sizes, resolving colors from CSS variables for light and dark. Complex / see source.",
+      "props": [
+        {
+          "name": "pattern",
+          "type": "wave | pulse | sweep | orbit",
+          "default": "wave",
+          "description": "Animation pattern (generic / analysis / AI thinking / data fetch)."
+        },
+        {
+          "name": "size",
+          "type": "sm | md | lg",
+          "default": "md",
+          "description": "Matrix size (20 / 28 / 40 px)."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra classes on the SVG."
+        }
+      ],
+      "tokens": [],
+      "usage": "Drop in as a small inline loading/thinking indicator; pick the pattern to match the activity (e.g. sweep for AI processing, orbit for scanning). Color comes from CSS variables, not aq-* class utilities.",
+      "whenToReachFor": "The branded loading glyph instead of a generic spinner. Complex / see source."
+    },
+    {
+      "name": "AnimatedNumber",
+      "category": "motion",
+      "tier": 3,
+      "import": "import { AnimatedNumber } from '@shared/ui'",
+      "source": "primitives/ui/AnimatedNumber/AnimatedNumber.tsx",
+      "summary": "Pops a numeric value when it changes, blurring/sliding the old value out and the new one in (direction follows the delta), with a reduced-motion plain-swap fallback. Complex / see source.",
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "description": "The number to display; changing it triggers the pop."
+        },
+        {
+          "name": "format",
+          "type": "(n: number) => string",
+          "default": "String(n)",
+          "description": "Formats the number before display (e.g. toLocaleString)."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra classes on the wrapper span."
+        }
+      ],
+      "tokens": [],
+      "usage": "Wrap a live count (unread, sandbox usage, decision totals) so updates feel alive rather than silently swapping. Uses motion tokens, no aq-* class colors.",
+      "whenToReachFor": "Any frequently-updating numeric counter. Complex / see source."
+    },
+    {
+      "name": "TextSwap",
+      "category": "motion",
+      "tier": 3,
+      "import": "import { TextSwap } from '@shared/ui'",
+      "source": "primitives/ui/TextSwap/TextSwap.tsx",
+      "summary": "Swaps text content in place with a blurred up-and-down transition when text changes, with a reduced-motion crossfade fallback. Complex / see source.",
+      "props": [
+        {
+          "name": "text",
+          "type": "string",
+          "description": "Current text; changing it triggers the swap."
+        },
+        {
+          "name": "as",
+          "type": "ElementType",
+          "default": "span",
+          "description": "Element to render as."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra classes on the wrapper."
+        }
+      ],
+      "tokens": [],
+      "usage": "Use for a label that mutates in place (a status word, a live 'x selected' count, a toggle caption). Uses motion tokens, no aq-* class colors.",
+      "whenToReachFor": "A single in-place text label changes and should animate the change. Complex / see source."
+    },
+    {
+      "name": "IconSwap",
+      "category": "motion",
+      "tier": 3,
+      "import": "import { IconSwap } from '@shared/ui'",
+      "source": "primitives/ui/IconSwap/IconSwap.tsx",
+      "summary": "Cross-fades between two icons in the same fixed slot (outgoing blurs/scales out, incoming blurs/scales in), driven by a changing swapKey, with a reduced-motion plain swap. Complex / see source.",
+      "props": [
+        {
+          "name": "swapKey",
+          "type": "string",
+          "description": "Changing it re-runs the swap; keep stable while the icon is stable."
+        },
+        {
+          "name": "icon",
+          "type": "ComponentType<IconProps>",
+          "description": "The icon for the current state."
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "default": "16",
+          "description": "Icon size."
+        },
+        {
+          "name": "stroke",
+          "type": "number",
+          "default": "1.8",
+          "description": "Icon stroke width."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra classes on the wrapper."
+        }
+      ],
+      "tokens": [],
+      "usage": "Drive with a boolean/status string (e.g. copied ? 'done' : 'idle') to swap glyphs without layout shift, such as a copy-to-check affordance. Uses motion tokens, no aq-* class colors.",
+      "whenToReachFor": "An icon toggles between two states in place. Complex / see source."
+    },
+    {
+      "name": "Shimmer",
+      "category": "motion",
+      "tier": 3,
+      "import": "import { Shimmer } from '@shared/ui'",
+      "source": "primitives/ui/Shimmer/Shimmer.tsx",
+      "summary": "A thin wrapper that sweeps a soft highlight across muted text on a loop (via the aq-text-shimmer utility) for in-progress / 'thinking' labels that should feel alive without a spinner. Complex / see source.",
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "The text to shimmer."
+        },
+        {
+          "name": "as",
+          "type": "ElementType",
+          "default": "span",
+          "description": "Element to render as."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Extra classes (appended after aq-text-shimmer)."
+        }
+      ],
+      "tokens": [],
+      "usage": "Wrap a running/streaming status label (e.g. 'Runningâ€¦') so it pulses while work is in progress. The gradient/timing live in the aq-text-shimmer utility in globals.css.",
+      "whenToReachFor": "An in-progress text label that should read as alive without a spinner. Complex / see source."
+    },
+    {
+      "name": "BottomSheet",
+      "category": "overlay",
+      "tier": 2,
+      "import": "import { BottomSheet, SheetSection, SheetOption } from '@shared/ui'",
+      "source": "primitives/ui/BottomSheet/BottomSheet.tsx",
+      "summary": "Mobile bottom sheet: grab-bar handle, optional title + sticky thumb-zone footer, internal scroll. Backdrop/handle/Esc to dismiss.",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean"
+        },
+        {
+          "name": "onClose",
+          "type": "() => void"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Shown in the grab-bar row."
+        },
+        {
+          "name": "footer",
+          "type": "ReactNode",
+          "description": "Sticky thumb-zone actions."
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string"
+        },
+        {
+          "name": "children",
+          "type": "ReactNode"
+        }
+      ],
+      "tokens": [
+        "aq-surface",
+        "aq-border",
+        "aq-scrim"
+      ],
+      "usage": "The mobile counterpart to Modal/SideModal. Use below the lg breakpoint for sheet-style flows.",
+      "whenToReachFor": "A bottom-anchored sheet on small screens. Pairs with SheetSection/SheetOption."
+    },
+    {
+      "name": "DataCard",
+      "category": "data-display",
+      "tier": 2,
+      "import": "import { DataCard, DataCardList } from '@shared/ui'",
+      "source": "primitives/ui/DataCard/DataCard.tsx",
+      "summary": "Mobile data card: optional icon tile, title/subtitle, top-right status slot, up to a few 2-up labelled fields, and a thumb-zone action row. Whole card is tappable.",
+      "props": [
+        {
+          "name": "icon",
+          "type": "ReactNode"
+        },
+        {
+          "name": "title",
+          "type": "ReactNode"
+        },
+        {
+          "name": "subtitle",
+          "type": "ReactNode"
+        },
+        {
+          "name": "status",
+          "type": "ReactNode",
+          "description": "StatusBadge / Chip / health dot."
+        },
+        {
+          "name": "fields",
+          "type": "ReadonlyArray<DataCardField>",
+          "description": "2-up labelled fields."
+        },
+        {
+          "name": "actions",
+          "type": "ReactNode"
+        },
+        {
+          "name": "onClick",
+          "type": "() => void"
+        }
+      ],
+      "tokens": [
+        "aq-surface",
+        "aq-border",
+        "aq-ink",
+        "aq-ink-muted"
+      ],
+      "usage": "The mobile equivalent of a table row / signal card. Use DataCardList to stack them.",
+      "whenToReachFor": "Showing a record as a card on small screens instead of a table row."
+    }
+  ]
+}
+

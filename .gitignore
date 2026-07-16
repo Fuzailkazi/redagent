@@ -4,6 +4,7 @@ node_modules/
 # Build output
 dist/
 .turbo/
+.next/
 *.tsbuildinfo
 
 # Generated scan reports
@@ -12,6 +13,7 @@ reports/
 # Environment / secrets
 .env
 .env.*
+!.env.example
 *.local
 secrets.json
 *.secret

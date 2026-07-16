@@ -1,0 +1,127 @@
+/* The site's stylesheet.
+ *
+ * We import the REAL app globals, which pulls in Tailwind, the real tokens.css,
+ * and the @theme block that binds every aq-* token into Tailwind utilities. That
+ * means the site uses the exact same theme the app ships, so previews of real
+ * @shared/ui primitives render identically and never drift.
+ *
+ * Site-local chrome styles live below the import, all expressed through the same
+ * aq-* tokens (var(--color-aq-*)) so the catalog UI auto-themes light/dark too.
+ */
+@import '../../styles/globals.css';
+
+/* CRITICAL: Tailwind v4 only generates utilities for classes it finds by
+ * scanning source files. By default it scans this site's src/ only — NOT the
+ * app's feature/shared code one level up. So utilities used only by the real
+ * components we render (p-3.5, gap-2.5, gap-x-3, half-step spacings, etc.) were
+ * never emitted, and every pulled-in section rendered with zero padding.
+ * Point Tailwind at the vendored primitives AND the site source so every
+ * utility both use is generated. */
+@source "../../primitives";
+@source "../src";
+
+/* ----- self-hosted fonts (from design-system/assets/fonts, copied to
+ * public/fonts by setup). No Google Fonts dependency, so the deployed site is
+ * fully portable. Geist + Geist Mono are variable (weight axis); Sunflower
+ * ships two static display weights. ----- */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMono.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sunflower';
+  src: url('/fonts/Sunflower-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sunflower';
+  src: url('/fonts/Sunflower-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* ----- site chrome helpers (token-driven) ----- */
+
+:root {
+  --ds-sidebar-w: 248px;
+  --ds-content-max: 1080px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* Lock the app to the viewport so the sidebar and main pane scroll
+ * INDEPENDENTLY inside it, instead of the whole document scrolling as one. */
+#root {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* thin, tasteful scrollbars matching the muted aesthetic */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-aq-border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-aq-border-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+/* Preview canvas: a calm dotted-grid surface (one step off the page bg) that
+ * frames a component without competing with it. Not a bordered card, so
+ * self-bordered components (cards, banners, rows) don't get double-boxed. */
+.ds-stage {
+  background-color: var(--color-aq-bg);
+  background-image: radial-gradient(var(--color-aq-border) 1px, transparent 1px);
+  background-size: 16px 16px;
+  border: 1px solid var(--color-aq-border);
+}
+
+/* checkerboard behind transparent/ghost previews so they read clearly */
+.ds-checker {
+  background-image:
+    linear-gradient(45deg, var(--color-aq-zebra) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--color-aq-zebra) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--color-aq-zebra) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--color-aq-zebra) 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0px;
+}
+
+/* smooth, motion-safe page fade */
+@media (prefers-reduced-motion: no-preference) {
+  .ds-fade-in {
+    animation: ds-fade 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+@keyframes ds-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

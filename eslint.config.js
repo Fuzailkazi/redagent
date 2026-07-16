@@ -28,6 +28,16 @@ export default tseslint.config(
     },
   },
   {
+    // Plain ESM JS helpers (e.g. e2e mock servers) run on Node — give them the
+    // Node globals so `process`, etc. are defined.
+    files: ['**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+  },
+  {
     // Tests deliberately construct malformed/ill-typed inputs to assert validators
     // reject them, so `any` is legitimate here.
     files: ['**/*.test.ts', '**/test/**/*.ts'],

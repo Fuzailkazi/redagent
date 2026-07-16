@@ -34,3 +34,11 @@ export { detect, looksLikeRefusal } from './detectors.js';
 export { runScan, type RunScanOptions } from './runner.js';
 
 export { score, SEVERITY_WEIGHTS } from './scorer.js';
+
+export {
+  detectTarget,
+  type DetectResult,
+  type DetectSuccess,
+  type DetectFailure,
+  type DetectOptions,
+} from './autodetect.js';

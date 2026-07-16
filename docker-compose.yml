@@ -1,0 +1,45 @@
+# Local infra for ArmorIQ red-teaming (Postgres + Redis).
+#
+# NOTE: the primary dev machine already runs Postgres (localhost:5432, trust auth)
+# and Redis (localhost:6379, no auth) natively — this file exists so OTHER machines
+# can bring up matching services with a single command:
+#
+#   docker compose up -d
+#
+# Ports and defaults mirror the native setup so the same .env works either way.
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: redagent-postgres
+    environment:
+      POSTGRES_DB: redagent
+      # trust auth — no password needed on localhost. Do NOT use in production.
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - redagent_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d redagent"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: redagent-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redagent_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  redagent_pgdata:
+  redagent_redisdata:

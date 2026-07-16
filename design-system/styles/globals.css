@@ -1,0 +1,765 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Tailwind v4 @theme — binds every token from tokens.css into Tailwind so
+ * utility classes resolve from CSS variables:
+ *
+ *   bg-aq-surface       border-aq-border        text-aq-ink-muted
+ *   text-aq-sm          rounded-aq-xs           tracking-aq-tight
+ *   p-4.5 / gap-5.5     shadow-aq-card
+ *
+ * Fonts: Geist (sans — body + all UI), Geist Mono (mono — code / IDs / YAML),
+ * Sunflower (display — brand wordmark + hero, 3 weights only, display-scoped),
+ * Instrument Serif (decorative — auth hero numeral). Loaded via
+ * <link rel="stylesheet"> in index.html.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* ---- Surfaces ---- */
+  --color-aq-bg: var(--color-aq-bg);
+  --color-aq-surface: var(--color-aq-surface);
+  --color-aq-zebra: var(--color-aq-zebra);
+
+  /* ---- Borders ---- */
+  --color-aq-border: var(--color-aq-border);
+  --color-aq-border-strong: var(--color-aq-border-strong);
+
+  /* ---- Ink (light) ---- */
+  --color-aq-ink: var(--color-aq-ink);
+  --color-aq-ink-soft: var(--color-aq-ink-soft);
+  --color-aq-ink-muted: var(--color-aq-ink-muted);
+  --color-aq-ink-faint: var(--color-aq-ink-faint);
+
+  /* ---- Brand accent ---- */
+  --color-aq-accent: var(--color-aq-accent);
+  --color-aq-accent-soft: var(--color-aq-accent-soft);
+  --color-aq-accent-strong: var(--color-aq-accent-strong);
+
+  /* ---- Accent tint family (orange selection grammar) ---- */
+  --color-aq-accent-wash: var(--color-aq-accent-wash);
+  --color-aq-accent-deep: var(--color-aq-accent-deep);
+  --color-aq-accent-line: var(--color-aq-accent-line);
+
+  /* ---- Org-tile extension ---- */
+  --color-aq-iris: var(--color-aq-iris);
+
+  /* ---- Graph node hues + governance crown ---- */
+  --color-aq-node-org: var(--color-aq-node-org);
+  --color-aq-node-framework: var(--color-aq-node-framework);
+  --color-aq-node-agent: var(--color-aq-node-agent);
+  --color-aq-node-server: var(--color-aq-node-server);
+  --color-aq-node-policy: var(--color-aq-node-policy);
+  --color-aq-node-plan: var(--color-aq-node-plan);
+  --color-aq-node-tool: var(--color-aq-node-tool);
+  --color-aq-node-key: var(--color-aq-node-key);
+  --color-aq-node-bundle: var(--color-aq-node-bundle);
+  --color-aq-node-invocation: var(--color-aq-node-invocation);
+  --color-aq-node-governed: var(--color-aq-node-governed);
+
+  /* ---- Graph relationship edges ---- */
+  --color-aq-edge-flow: var(--color-aq-edge-flow);
+  --color-aq-edge-auth: var(--color-aq-edge-auth);
+  --color-aq-edge-govern: var(--color-aq-edge-govern);
+  --color-aq-edge-secure: var(--color-aq-edge-secure);
+  --color-aq-edge-hot: var(--color-aq-edge-hot);
+
+  /* ---- AI authoring accent ---- */
+  --color-aq-ai-from: var(--color-aq-ai-from);
+  --color-aq-ai-to: var(--color-aq-ai-to);
+
+  /* ---- AI policy composer (morphing card) ---- */
+  --color-aq-compose-well: var(--color-aq-compose-well);
+  --color-aq-compose-send: var(--color-aq-compose-send);
+  --color-aq-compose-ink: var(--color-aq-compose-ink);
+  --color-aq-compose-mention-mcp: var(--color-aq-compose-mention-mcp);
+  --color-aq-compose-mention-tool: var(--color-aq-compose-mention-tool);
+
+  /* ---- Semantic ---- */
+  --color-aq-good: var(--color-aq-good);
+  --color-aq-good-soft: var(--color-aq-good-soft);
+  --color-aq-warn: var(--color-aq-warn);
+  --color-aq-warn-soft: var(--color-aq-warn-soft);
+  --color-aq-bad: var(--color-aq-bad);
+  --color-aq-bad-soft: var(--color-aq-bad-soft);
+  --color-aq-info: var(--color-aq-info);
+  --color-aq-info-soft: var(--color-aq-info-soft);
+
+  /* ---- Dark ink panel ---- */
+  --color-aq-ink-panel: var(--color-aq-ink-panel);
+  --color-aq-ink-on: var(--color-aq-ink-on);
+  --color-aq-ink-on-soft: var(--color-aq-ink-on-soft);
+  --color-aq-ink-on-muted: var(--color-aq-ink-on-muted);
+  --color-aq-ink-on-tint: var(--color-aq-ink-on-tint);
+  --color-aq-ink-on-line: var(--color-aq-ink-on-line);
+  --color-aq-ink-on-wash: var(--color-aq-ink-on-wash);
+
+  /* ---- Scrim + Toast (theme-aware) ---- */
+  --color-aq-scrim: var(--color-aq-scrim);
+  --color-aq-toast-bg: var(--color-aq-toast-bg);
+  --color-aq-toast-fg: var(--color-aq-toast-fg);
+  --color-aq-toast-border: var(--color-aq-toast-border);
+
+  /* ---- Third-party brand ---- */
+  --color-aq-brand-microsoft: var(--color-aq-brand-microsoft);
+  --color-aq-brand-google: var(--color-aq-brand-google);
+  --color-aq-brand-google-blue: var(--color-aq-brand-google-blue);
+  --color-aq-brand-google-yellow: var(--color-aq-brand-google-yellow);
+  --color-aq-brand-google-red: var(--color-aq-brand-google-red);
+
+  /* ---- Radius ---- */
+  --radius-aq-xs: var(--radius-aq-xs);
+  --radius-aq-2xl: var(--radius-aq-2xl);
+  --radius-aq-3xl: var(--radius-aq-3xl);
+
+  /* ---- Typography sizes + paired line-heights ---- */
+  --text-aq-caption: var(--text-aq-caption);
+  --text-aq-caption--line-height: var(--text-aq-caption--line-height);
+  --text-aq-xs: var(--text-aq-xs);
+  --text-aq-xs--line-height: var(--text-aq-xs--line-height);
+  --text-aq-sm: var(--text-aq-sm);
+  --text-aq-sm--line-height: var(--text-aq-sm--line-height);
+  --text-aq-base: var(--text-aq-base);
+  --text-aq-base--line-height: var(--text-aq-base--line-height);
+  --text-aq-md: var(--text-aq-md);
+  --text-aq-md--line-height: var(--text-aq-md--line-height);
+  --text-aq-lg: var(--text-aq-lg);
+  --text-aq-lg--line-height: var(--text-aq-lg--line-height);
+  --text-aq-h2: var(--text-aq-h2);
+  --text-aq-h2--line-height: var(--text-aq-h2--line-height);
+  --text-aq-display: var(--text-aq-display);
+  --text-aq-display--line-height: var(--text-aq-display--line-height);
+  --text-aq-hero: var(--text-aq-hero);
+  --text-aq-hero--line-height: var(--text-aq-hero--line-height);
+  --text-aq-stat: var(--text-aq-stat);
+  --text-aq-stat--line-height: var(--text-aq-stat--line-height);
+
+  /* ---- Tracking ---- */
+  --tracking-aq-tight: var(--tracking-aq-tight);
+  --tracking-aq-wide: var(--tracking-aq-wide);
+  --tracking-aq-wider: var(--tracking-aq-wider);
+  --tracking-aq-widest: var(--tracking-aq-widest);
+
+  /* ---- Spacing (V5 half-steps; combined with Tailwind's 4px scale) ---- */
+  --spacing-4_5: var(--spacing-4_5);
+  --spacing-5_5: var(--spacing-5_5);
+  --spacing-6_5: var(--spacing-6_5);
+  --spacing-7_5: var(--spacing-7_5);
+
+  /* ---- Shadow ---- */
+  --shadow-aq-card: var(--shadow-aq-card);
+  --shadow-aq-popover: var(--shadow-aq-popover);
+  --shadow-aq-modal: var(--shadow-aq-modal);
+  --shadow-aq-button: var(--shadow-aq-button);
+  --shadow-aq-flyout: var(--shadow-aq-flyout);
+  --shadow-aq-float: var(--shadow-aq-float);
+  --shadow-aq-panel: var(--shadow-aq-panel);
+
+  /* ---- Motion ---- */
+  --duration-aq-fast: var(--duration-aq-fast);
+  --duration-aq-base: var(--duration-aq-base);
+  --duration-aq-slow: var(--duration-aq-slow);
+  --ease-aq-out: var(--ease-aq-out);
+  --ease-aq-inout: var(--ease-aq-inout);
+
+  /* ---- Icon + avatar sizes (consumed by primitives, not Tailwind utilities) ---- */
+  --icon-aq-xs: var(--icon-aq-xs);
+  --icon-aq-sm: var(--icon-aq-sm);
+  --icon-aq-md: var(--icon-aq-md);
+  --icon-aq-lg: var(--icon-aq-lg);
+  --avatar-aq-xs: var(--avatar-aq-xs);
+  --avatar-aq-sm: var(--avatar-aq-sm);
+  --avatar-aq-md: var(--avatar-aq-md);
+  --avatar-aq-lg: var(--avatar-aq-lg);
+  --avatar-aq-xl: var(--avatar-aq-xl);
+
+  /* ---- Font families ----
+   * sans    = Geist (primary: body + every UI surface, via `body` + `font-sans`)
+   * mono    = Geist Mono (code, IDs, versions, YAML, via `font-mono`)
+   * display = Sunflower (brand wordmark + hero numerals only, via `font-display`).
+   *           Sunflower ships 3 weights (300/500/700), no 400/italic, and is a
+   *           rounded display face — keep it OFF body/small text. Geist is the
+   *           fallback so any missing-weight run degrades cleanly.
+   * geist   = retained alias (== sans now) so existing `font-geist` call sites
+   *           keep working without churn.
+   * serif   = Instrument Serif (auth hero decorative numeral).
+   * Inter / JetBrains Mono remain only as named fallbacks (no longer fetched). */
+  --font-sans:
+    'Geist', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  --font-display: 'Sunflower', 'Geist', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-geist:
+    'Geist', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:
+    'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+}
+
+/* Minimal global resets. Component-level styling lives in Tailwind utilities. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-aq-bg);
+  color: var(--color-aq-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-aq-base);
+  line-height: var(--text-aq-base--line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Accessible default focus ring; primitives may override per-component.
+ * Uses the focus tokens so the ring auto-themes with the accent. */
+:focus-visible {
+  outline: var(--focus-aq-ring-width) solid var(--focus-aq-ring-color);
+  outline-offset: var(--focus-aq-ring-offset);
+}
+
+/* Text-like inputs use a subtle border-color shift on focus instead of the
+ * bold accent ring. The full ring is intentionally kept for buttons, tabs,
+ * links, and other non-input focusable elements where the strong signal
+ * helps keyboard users locate themselves. !important is used here because
+ * Tailwind utility classes load in a later cascade layer; this rule needs
+ * to win over per-component `focus-visible:outline-*` utilities everywhere. */
+input[type='text']:focus-visible,
+input[type='email']:focus-visible,
+input[type='password']:focus-visible,
+input[type='search']:focus-visible,
+input[type='tel']:focus-visible,
+input[type='url']:focus-visible,
+input[type='number']:focus-visible,
+input:not([type]):focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  border-color: var(--color-aq-ink-soft);
+}
+
+/* ───────────────────────────── Auth hero gradient ───────────────────────────
+ * Used by `<GradientHero>` on /auth and /auth/signup. Multi-stop linear
+ * gradient that mimics a sunset-over-sea: warm yellow/orange at the top, a
+ * deep red/black horizon mid-frame, teal/navy at the bottom. Plus a
+ * halftone-dot overlay for that printed-poster texture.
+ *
+ * Hex colors live here (CSS file) rather than in JSX because the project's
+ * ESLint rules ban hex string literals in JSX/className context. These five
+ * shades are auth-only and don't need to live in the token catalog.
+ */
+/* AI authoring gradient utility. Applied to GradientButton and any other
+ * AI affordance in the system. Uses token variables so it themes correctly. */
+.aq-ai-gradient {
+  background-image: linear-gradient(95deg, var(--color-aq-ai-from), var(--color-aq-ai-to));
+}
+
+.auth-hero-gradient {
+  background:
+    /* Sunset top → horizon → sea bottom */ linear-gradient(
+    180deg,
+    #ffb84a 0%,
+    /* warm yellow */ #f17828 8%,
+    /* orange */ #d83a1d 18%,
+    /* hot red */ #6a1a18 32%,
+    /* dark red */ #1a0d10 48%,
+    /* near-black */ #18181b 60%,
+    /* dark transition */ #2b3a4a 78%,
+    /* deep teal */ #2f5563 100% /* cooler teal */
+  );
+}
+
+/* Shimmer sweep — used by ScanProgressBlock progress bar fill.
+ * A semi-transparent white band moves left-to-right on loop, giving the
+ * bar a "live data" feel. Applied via .aq-shimmer utility class. */
+@keyframes aq-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.aq-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-aq-accent) 0%,
+    var(--color-aq-accent) 40%,
+    color-mix(in srgb, var(--color-aq-accent) 60%, white) 50%,
+    var(--color-aq-accent) 60%,
+    var(--color-aq-accent) 100%
+  );
+  background-size: 200% 100%;
+  animation: aq-shimmer 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aq-shimmer {
+    animation: none;
+    background: var(--color-aq-accent);
+  }
+}
+
+/* Skeleton sweep — neutral grey "loading shape" shimmer for the <Skeleton>
+ * primitive. Distinct from .aq-shimmer (orange, for determinate bars): this
+ * is the calm grey sweep used to placehold content while it loads. The band
+ * travels from the slightly-darker border tone to the lighter zebra tone so
+ * it reads on a near-white page without looking loud. */
+@keyframes aq-skeleton {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.aq-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-aq-border) 0%,
+    var(--color-aq-border) 35%,
+    var(--color-aq-zebra) 50%,
+    var(--color-aq-border) 65%,
+    var(--color-aq-border) 100%
+  );
+  background-size: 200% 100%;
+  animation: aq-skeleton 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aq-skeleton {
+    animation: none;
+    background: var(--color-aq-border);
+  }
+}
+
+/* Streaming caret — a blinking accent bar trailing live token output in the
+ * <StreamingText> primitive (AI generation). Step-timed blink, not a fade. */
+@keyframes aq-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.aq-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  background: var(--color-aq-accent);
+  animation: aq-blink 1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aq-caret {
+    animation: none;
+  }
+}
+
+/* Indeterminate progress — a short accent segment that slides across the track
+ * when a <Progress> has no known value (work started, no percentage yet). */
+@keyframes aq-progress-indeterminate {
+  0% {
+    left: -40%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.aq-progress-indeterminate {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  border-radius: 999px;
+  background: var(--color-aq-accent);
+  animation: aq-progress-indeterminate 1.3s var(--ease-aq-inout) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aq-progress-indeterminate {
+    animation: none;
+    left: 0;
+    width: 100%;
+    opacity: 0.5;
+  }
+}
+
+/* ───────────────────────── AI authoring motion ─────────────────────────────
+ * Used by the "Author with AI" rail panel (RailAiAuthoring): a breathing
+ * gradient orb with an expanding ring while the assistant reasons, a gradient
+ * shimmer that sweeps the "thinking" status text, and a staggered fade-up for
+ * drafted tool cards / decisions. All token-driven; all disabled under
+ * prefers-reduced-motion. */
+@keyframes aq-orb {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.aq-orb {
+  animation: aq-orb 1.6s var(--ease-aq-inout) infinite;
+}
+
+@keyframes aq-orb-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+.aq-orb-ring {
+  animation: aq-orb-ring 1.6s ease-out infinite;
+}
+
+@keyframes aq-text-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+.aq-text-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-aq-ink-muted) 0%,
+    var(--color-aq-ink-muted) 35%,
+    var(--color-aq-accent) 50%,
+    var(--color-aq-ink-muted) 65%,
+    var(--color-aq-ink-muted) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: aq-text-shimmer 1.8s linear infinite;
+}
+
+@keyframes aq-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.aq-fade-up {
+  animation: aq-fade-up 0.4s var(--ease-aq-out) both;
+}
+
+/* ── "AI is working on it" inner glow ─────────────────────────────────────────
+ * Applied to the main content region while the assistant is drafting a policy
+ * in the side panel. A breathing inset box-shadow in the AI gradient colours
+ * frames the page from the edges inward, so the workspace itself reads as
+ * "being worked on" without a layout shift or an opaque scrim. The colours come
+ * from the AI gradient tokens via color-mix so it themes with light/dark. A top
+ * gradient hairline reinforces the active band. Disabled under reduced-motion,
+ * where it falls back to a static soft inset. */
+@keyframes aq-ai-working {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--color-aq-ai-from) 28%, transparent),
+      inset 0 0 24px 0 color-mix(in srgb, var(--color-aq-ai-from) 16%, transparent),
+      inset 0 0 60px 0 color-mix(in srgb, var(--color-aq-ai-to) 10%, transparent);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--color-aq-ai-to) 42%, transparent),
+      inset 0 0 40px 0 color-mix(in srgb, var(--color-aq-ai-from) 26%, transparent),
+      inset 0 0 96px 0 color-mix(in srgb, var(--color-aq-ai-to) 18%, transparent);
+  }
+}
+
+.aq-ai-working {
+  position: relative;
+  animation: aq-ai-working 3s var(--ease-aq-inout) infinite;
+}
+
+.aq-ai-working::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-aq-ai-from) 14%, transparent) 0%,
+    transparent 18%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aq-ai-working {
+    animation: none;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--color-aq-ai-from) 32%, transparent),
+      inset 0 0 40px 0 color-mix(in srgb, var(--color-aq-ai-from) 18%, transparent);
+  }
+}
+
+/* ── Staggered text/element reveal (auth landing + form entrance) ─────────────
+ * Children of a `.aq-reveal` start translated-down + blurred + transparent and
+ * settle to rest when the parent gains `.is-shown` (added on mount via the
+ * useMountReveal hook). Each child sets `--reveal-i` (0-based) to cascade its
+ * delay, so a headline lands before its subhead, and form rows fall in after.
+ * Adapted from the transitions.dev "texts reveal" into the aq-* grammar. */
+.aq-reveal > [data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  filter: blur(3px);
+  transition:
+    opacity 0.5s var(--ease-aq-out),
+    transform 0.5s var(--ease-aq-out),
+    filter 0.5s var(--ease-aq-out);
+  transition-delay: calc(var(--reveal-i, 0) * 70ms);
+  will-change: transform, opacity, filter;
+}
+.aq-reveal.is-shown > [data-reveal] {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aq-orb,
+  .aq-orb-ring,
+  .aq-text-shimmer,
+  .aq-fade-up {
+    animation: none;
+  }
+  .aq-text-shimmer {
+    color: var(--color-aq-ink-muted);
+  }
+  .aq-reveal > [data-reveal] {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+}
+
+/* Halftone dot pattern, scaled small so it reads as a fine grain at desktop
+ * sizes but still visible. Sits ABOVE the gradient (mix-blend multiplies
+ * into the wash) and BELOW the noise SVG for layered texture. */
+.auth-hero-dots {
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.32) 0.9px, transparent 1px);
+  background-size: 4px 4px;
+  background-repeat: repeat;
+}
+
+/* ───────────────────────────── AIQ Graph ───────────────────────────────────
+ * The graph canvas uses a hand-rolled dotted background that scales + pans with
+ * the React Flow viewport (set as inline backgroundSize / backgroundPosition).
+ * Dot colour comes from the border-strong token (no hex in JSX). */
+.aq-graph-dots {
+  background-image: radial-gradient(var(--color-aq-border-strong) 1px, transparent 1px);
+}
+
+/* LiveFeed status dot pulse — a single ring that scales out + fades. */
+@keyframes aq-graph-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.aq-graph-pulse {
+  animation: aq-graph-pulse 1.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aq-graph-pulse {
+    animation: none;
+  }
+}
+
+/* React Flow chrome resets for our custom nodes/edges: the default node has a
+ * white box + border we don't want, and selected nodes get a default ring.
+ * Our node draws its own SVG body + halo, so strip the wrapper styling. */
+.react-flow__node-graph {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  /* The node reports a real 2r×2r box (so React Flow can measure it and render
+   * the edges); the visual body is an overflow-visible SVG centered on that
+   * box. We must NOT force width:0 here — a zero-measured node makes React Flow
+   * drop every connected edge. */
+  visibility: visible !important;
+}
+
+.react-flow__node-graph.selected,
+.react-flow__node-graph:focus,
+.react-flow__node-graph:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Our custom edge path owns its own stroke; hide the default interaction halo
+ * styling that would otherwise tint it. */
+.react-flow__edge-graph .react-flow__edge-path {
+  stroke: inherit;
+}
+
+/* ─────────────────────── transitions.dev (policy composer) ──────────────────
+ * Installed from the transitions-dev skill for the morphing policy-composer
+ * playground (/playground/policy-composer). Only the two transitions that
+ * playground uses are installed: card-resize (the card tweens height between
+ * its three states) and texts-reveal (the policy body + tool rows rise in with
+ * a staggered blur). Semantic var names per the skill; both ship the required
+ * prefers-reduced-motion guard. */
+:root {
+  --resize-dur: 300ms;
+  --resize-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --stagger-dur: 500ms;
+  --stagger-distance: 12px;
+  --stagger-stagger: 40ms;
+  --stagger-blur: 3px;
+  --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.t-resize {
+  transition:
+    width var(--resize-dur) var(--resize-ease),
+    height var(--resize-dur) var(--resize-ease);
+  will-change: width, height;
+}
+
+.t-stagger-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(var(--stagger-distance));
+  filter: blur(var(--stagger-blur));
+  transition:
+    opacity var(--stagger-dur) var(--stagger-ease),
+    transform var(--stagger-dur) var(--stagger-ease),
+    filter var(--stagger-dur) var(--stagger-ease);
+  will-change: transform, opacity, filter;
+}
+.t-stagger-line--2 {
+  transition-delay: var(--stagger-stagger);
+}
+.t-stagger-line--3 {
+  transition-delay: calc(var(--stagger-stagger) * 2);
+}
+.t-stagger.is-shown .t-stagger-line {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+.t-stagger.is-hiding .t-stagger-line {
+  opacity: 0;
+  transform: translateY(0);
+  filter: blur(0);
+  transition:
+    opacity 200ms ease,
+    transform 0s linear,
+    filter 0s linear;
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-resize {
+    transition: none !important;
+  }
+  .t-stagger-line {
+    transition: none !important;
+  }
+}
+
+/* Send acknowledgement — a quick pulse on the composer's send chip plus a
+ * paper-plane "launch" nudge when a prompt is submitted. Both self-revert; the
+ * `sending` flag is cleared after ~360ms. Disabled under reduced motion. */
+@keyframes aq-send-pulse {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(0.86);
+  }
+  70% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.aq-send-pulse {
+  animation: aq-send-pulse 360ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+@keyframes aq-send-launch {
+  0% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  45% {
+    transform: translate(7px, -7px);
+    opacity: 0;
+  }
+  46% {
+    transform: translate(-5px, 5px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+.aq-send-launch {
+  animation: aq-send-launch 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .aq-send-pulse,
+  .aq-send-launch {
+    animation: none;
+  }
+}
+
+/* Hide the scrollbar on horizontally-scrolling strips (mobile tab strips,
+   filter rows, the account section strip) while keeping them scrollable. The
+   content still scrolls by touch/trackpad; only the visible bar is removed so a
+   self-scrolling row reads as part of the UI, not a scrollable panel. */
+.aq-scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge */
+}
+.aq-scrollbar-none::-webkit-scrollbar {
+  display: none; /* WebKit/Blink */
+}

@@ -1,0 +1,52 @@
+{
+  "name": "@armoriq/design-system",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The ArmorIQ design system as a portable, self-contained kit: tokens, vendored primitives, agent skills, and a browsable showcase site. Pull this folder into any repo to design or redesign UI in the ArmorIQ style.",
+  "files": [
+    "tokens.json",
+    "tokens.css",
+    "components.json",
+    "skills",
+    "primitives",
+    "styles",
+    "references",
+    "assets",
+    "install.mjs"
+  ],
+  "exports": {
+    "./tokens.json": "./tokens.json",
+    "./tokens.css": "./styles/tokens.css",
+    "./globals.css": "./styles/globals.css",
+    "./components.json": "./components.json",
+    "./primitives": "./primitives/ui/index.ts"
+  },
+  "scripts": {
+    "skills:install": "node install.mjs",
+    "sync": "node sync/ds-sync.mjs",
+    "site:dev": "npm --prefix site run dev",
+    "site:build": "npm --prefix site run build",
+    "site:install": "npm --prefix site install"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "framer-motion": "^12.40.0",
+    "motion": "^12.40.0",
+    "@xyflow/react": "^12.11.0",
+    "lucide-react": "^0.545.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "tailwindcss": "^4.1.14",
+    "vite": "^7.1.7",
+    "@vitejs/plugin-react": "^5.0.4",
+    "typescript": "~5.9.3",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

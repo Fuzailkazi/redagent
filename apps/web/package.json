@@ -11,10 +11,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@armoriq/schema": "workspace:*",
+    "@tailwindcss/postcss": "^4.3.2",
+    "@xyflow/react": "^12.11.2",
+    "framer-motion": "^12.42.2",
+    "lucide-react": "^0.545.0",
+    "motion": "^12.42.2",
     "next": "^15",
     "react": "^19",
     "react-dom": "^19",
-    "@armoriq/schema": "workspace:*"
+    "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
     "@types/node": "^22",

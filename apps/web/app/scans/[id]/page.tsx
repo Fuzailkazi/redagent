@@ -12,6 +12,34 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
+  AnimatedNumber,
+  Banner,
+  Button,
+  Chip,
+  Collapsible,
+  MatrixLoader,
+  PageState,
+  Progress,
+  SectionHeader,
+  StatusBadge,
+} from '@shared/ui';
+import type { ChipTone, StatusTone } from '@shared/ui';
+import {
+  IconAlert,
+  IconArrowLeft,
+  IconCheckCircle,
+  IconClock,
+  IconDownload,
+  IconErrorCircle,
+  IconGrid2,
+  IconInfo,
+  IconPlus,
+  IconRadar,
+  IconRefresh,
+  IconShield,
+} from '@shared/icons';
+import type { IconProps } from '@shared/icons';
+import {
   getFindings,
   getScan,
   createScan,
@@ -33,16 +61,47 @@ const VERDICT_RANK: Record<Verdict, number> = {
   PASS: 3,
 };
 
-function pillClass(v: Verdict): string {
-  const suffix =
-    v === 'PASS'
-      ? 'pass'
-      : v === 'FAIL'
-        ? 'fail'
-        : v === 'INCONCLUSIVE'
-          ? 'inconclusive'
-          : 'error';
-  return `pill pill-${suffix}`;
+/** Verdict → status pill tone + icon. */
+function verdictView(v: Verdict): { tone: StatusTone; icon: React.ComponentType<IconProps> } {
+  switch (v) {
+    case 'PASS':
+      return { tone: 'good', icon: IconCheckCircle };
+    case 'FAIL':
+      return { tone: 'bad', icon: IconErrorCircle };
+    case 'INCONCLUSIVE':
+      return { tone: 'warn', icon: IconInfo };
+    default:
+      return { tone: 'neutral', icon: IconAlert };
+  }
+}
+
+/** Scan lifecycle status → status pill. */
+function scanStatusView(
+  status: Scan['status'],
+): { tone: StatusTone; icon: React.ComponentType<IconProps>; shimmer?: boolean } {
+  switch (status) {
+    case 'completed':
+      return { tone: 'good', icon: IconCheckCircle };
+    case 'failed':
+      return { tone: 'bad', icon: IconErrorCircle };
+    case 'running':
+      return { tone: 'info', icon: IconRadar, shimmer: true };
+    default:
+      return { tone: 'neutral', icon: IconClock, shimmer: true };
+  }
+}
+
+/** Severity → chip tone (critical/high read as bad, medium warn, low neutral). */
+function severityTone(severity: string): ChipTone {
+  switch (severity) {
+    case 'critical':
+    case 'high':
+      return 'bad';
+    case 'medium':
+      return 'warn';
+    default:
+      return 'neutral';
+  }
 }
 
 interface JudgeInfo {
@@ -65,6 +124,49 @@ function fmtTime(iso: string | null): string {
   } catch {
     return iso;
   }
+}
+
+/* Shared surfaces — token-only, mirrors the other pages' card treatment. */
+const CARD_CLS = 'rounded-lg border border-aq-border bg-aq-surface p-5 shadow-aq-card';
+/** Ghost-style link (Button renders a <button>; report downloads must be anchors). */
+const LINK_BTN_CLS =
+  'inline-flex items-center gap-1.5 rounded-md border border-aq-border bg-aq-surface px-2.5 py-1.5 text-aq-sm font-medium text-aq-ink-muted transition-colors hover:bg-aq-zebra hover:text-aq-ink';
+
+/** One scorecard tile. Optional token-colored meter under the value. */
+function StatTile({
+  label,
+  value,
+  valueClass,
+  sub,
+  meterPct,
+  meterClass,
+}: {
+  label: string;
+  value: React.ReactNode;
+  valueClass?: string;
+  sub: React.ReactNode;
+  meterPct?: number | null;
+  meterClass?: string;
+}) {
+  return (
+    <div className={`flex flex-col gap-1.5 ${CARD_CLS}`}>
+      <div className="text-aq-caption font-semibold uppercase tracking-aq-wide text-aq-ink-muted">
+        {label}
+      </div>
+      <div className={`text-aq-stat font-semibold tabular-nums ${valueClass ?? 'text-aq-ink'}`}>
+        {value}
+      </div>
+      <div className="text-aq-caption text-aq-ink-muted">{sub}</div>
+      {meterPct != null && (
+        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-aq-zebra">
+          <div
+            className={`h-full rounded-full ${meterClass ?? 'bg-aq-accent'} motion-safe:transition-[width] motion-safe:duration-aq-base`}
+            style={{ width: `${Math.max(0, Math.min(100, meterPct))}%` }}
+          />
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ScanResultsPage() {
@@ -168,52 +270,85 @@ export default function ScanResultsPage() {
     return [...map.values()].sort((a, b) => a.owasp.localeCompare(b.owasp));
   }, [findings]);
 
+  const sv = scan ? scanStatusView(scan.status) : null;
+
   return (
-    <div className="stack">
-      <div className="between cluster">
-        <div>
-          <div className="faint mono" style={{ fontSize: '0.8rem' }}>scan {id}</div>
-          <h1 style={{ margin: 0 }}>Scan report</h1>
+    <div className="flex flex-col gap-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <div className="font-mono text-aq-xs text-aq-ink-faint">scan {id}</div>
+          <h1 className="text-aq-lg font-semibold tracking-aq-tight text-aq-ink">Scan report</h1>
         </div>
-        <div className="cluster" style={{ gap: 'var(--sp-2)' }}>
+        <div className="flex flex-wrap items-center gap-2">
           {scan?.status === 'completed' && (
             <>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={rescan} disabled={rescanning}>
-                {rescanning ? 'Re-scanning…' : '↻ Re-scan'}
-              </button>
-              <a className="btn btn-ghost btn-sm" href={reportUrl(id, 'json')}>JSON</a>
-              <a className="btn btn-ghost btn-sm" href={reportUrl(id, 'md')}>Markdown</a>
+              <Button
+                size="sm"
+                variant="secondary"
+                leading={IconRefresh}
+                onClick={rescan}
+                loading={rescanning}
+                disabled={rescanning}
+              >
+                {rescanning ? 'Re-scanning…' : 'Re-scan'}
+              </Button>
+              <a className={LINK_BTN_CLS} href={reportUrl(id, 'json')}>
+                <IconDownload size={15} />
+                JSON
+              </a>
+              <a className={LINK_BTN_CLS} href={reportUrl(id, 'md')}>
+                <IconDownload size={15} />
+                Markdown
+              </a>
             </>
           )}
-          <Link href="/scans" className="btn btn-ghost btn-sm">All scans</Link>
-          <Link href="/" className="btn btn-primary btn-sm">+ New scan</Link>
+          <Link className={LINK_BTN_CLS} href="/scans">
+            <IconArrowLeft size={15} />
+            All scans
+          </Link>
+          <Link
+            className="inline-flex items-center gap-1.5 rounded-md bg-aq-accent px-2.5 py-1.5 text-aq-sm font-medium text-aq-ink-on shadow-aq-button transition-colors hover:bg-aq-accent-strong"
+            href="/"
+          >
+            <IconPlus size={15} />
+            New scan
+          </Link>
         </div>
       </div>
 
-      {error && <div className="notice notice-error" role="alert">{error}</div>}
-
-      {!scan && !error && (
-        <div className="card cluster"><span className="spinner" aria-hidden="true" /> Loading scan…</div>
+      {error && (
+        <PageState state="error" headline="Couldn't load the scan" body={error} />
       )}
+
+      {!scan && !error && <PageState state="loading" headline="Loading scan…" />}
 
       {scan && (
         <>
           {/* Status + metadata */}
-          <div className="card stack" style={{ gap: 'var(--sp-3)' }}>
-            <div className="between cluster">
-              <div className="cluster" style={{ gap: 'var(--sp-2)' }}>
-                <span className={`pill pill-${scan.status === 'completed' ? 'pass' : scan.status === 'failed' ? 'fail' : 'inconclusive'}`}>
-                  {scan.status}
-                </span>
-                <span className="badge badge-accent">{scan.profile}</span>
-                {scan.judgeModel && <span className="muted mono" style={{ fontSize: '0.82rem' }}>judge: {scan.judgeModel}</span>}
+          <div className={`flex flex-col gap-3 ${CARD_CLS}`}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {sv && (
+                  <StatusBadge tone={sv.tone} icon={sv.icon} shimmer={sv.shimmer} label={scan.status} />
+                )}
+                <Chip size="sm" tone="neutral">
+                  {scan.profile}
+                </Chip>
+                {scan.judgeModel && (
+                  <span className="font-mono text-aq-xs text-aq-ink-muted">judge: {scan.judgeModel}</span>
+                )}
               </div>
-              {running && <span className="cluster faint" style={{ gap: 'var(--sp-2)' }}><span className="spinner" aria-hidden="true" /> polling…</span>}
+              {running && (
+                <span className="flex items-center gap-2 text-aq-xs text-aq-ink-faint">
+                  <MatrixLoader pattern="orbit" size="sm" /> polling…
+                </span>
+              )}
             </div>
             {scan.status === 'failed' && scan.errorMessage && (
-              <div className="notice notice-error">Scan failed: {scan.errorMessage}</div>
+              <Banner tone="bad">Scan failed: {scan.errorMessage}</Banner>
             )}
-            <div className="faint" style={{ fontSize: '0.82rem' }}>
+            <div className="text-aq-xs text-aq-ink-faint">
               started {fmtTime(scan.startedAt)} · finished {fmtTime(scan.finishedAt)}
               {scan.libraryVersion && ` · library ${scan.libraryVersion}`}
               {scan.engineVersion && ` · engine ${scan.engineVersion}`}
@@ -221,77 +356,94 @@ export default function ScanResultsPage() {
           </div>
 
           {/* Scorecard */}
-          <div className="stat-grid">
-            <div className="stat-tile">
-              <div className="stat-label">Resilience</div>
-              <div className="stat-value pass tnum">
-                {scan.resiliencePct != null ? `${scan.resiliencePct}%` : '—'}
-              </div>
-              <div className="stat-sub">pass rate · higher is better</div>
-              {scan.resiliencePct != null && (
-                <div className="meter"><div className="meter-fill pass" style={{ width: `${scan.resiliencePct}%` }} /></div>
-              )}
-            </div>
-            <div className="stat-tile">
-              <div className="stat-label">Weighted risk</div>
-              <div className="stat-value fail tnum">
-                {scan.weightedRiskPct != null ? `${scan.weightedRiskPct}%` : '—'}
-              </div>
-              <div className="stat-sub">severity-weighted fails · lower is better</div>
-              {scan.weightedRiskPct != null && (
-                <div className="meter"><div className="meter-fill fail" style={{ width: `${scan.weightedRiskPct}%` }} /></div>
-              )}
-            </div>
-            <div className="stat-tile">
-              <div className="stat-label">Probes</div>
-              <div className="stat-value tnum">{scan.counts.total}</div>
-              <div className="stat-sub">
-                <span className="pass">{scan.counts.pass} pass</span> · <span className="fail">{scan.counts.fail} fail</span>
-              </div>
-            </div>
-            <div className="stat-tile">
-              <div className="stat-label">Needs review</div>
-              <div className="stat-value warn tnum">{scan.counts.inconclusive}</div>
-              <div className="stat-sub">{scan.counts.error} error</div>
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatTile
+              label="Resilience"
+              value={scan.resiliencePct != null ? `${scan.resiliencePct}%` : '—'}
+              valueClass="text-aq-good"
+              sub="pass rate · higher is better"
+              meterPct={scan.resiliencePct}
+              meterClass="bg-aq-good"
+            />
+            <StatTile
+              label="Weighted risk"
+              value={scan.weightedRiskPct != null ? `${scan.weightedRiskPct}%` : '—'}
+              valueClass="text-aq-bad"
+              sub="severity-weighted fails · lower is better"
+              meterPct={scan.weightedRiskPct}
+              meterClass="bg-aq-bad"
+            />
+            <StatTile
+              label="Probes"
+              value={<AnimatedNumber value={scan.counts.total} />}
+              sub={
+                <>
+                  <span className="text-aq-good">{scan.counts.pass} pass</span> ·{' '}
+                  <span className="text-aq-bad">{scan.counts.fail} fail</span>
+                </>
+              }
+            />
+            <StatTile
+              label="Needs review"
+              value={<AnimatedNumber value={scan.counts.inconclusive} />}
+              valueClass="text-aq-warn"
+              sub={`${scan.counts.error} error`}
+            />
           </div>
 
           {/* Live progress */}
           {running && (
-            <div className="card stack" style={{ gap: 'var(--sp-2)' }}>
-              <div className="between cluster">
-                <span className="cluster" style={{ gap: 'var(--sp-2)' }}>
-                  <span className="spinner" aria-hidden="true" />
+            <div className={`flex flex-col gap-3 ${CARD_CLS}`}>
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 text-aq-sm text-aq-ink">
+                  <MatrixLoader pattern="sweep" size="sm" />
                   {scan.status === 'queued' ? 'Queued…' : 'Running probes…'}
                 </span>
-                <span className="faint tnum">{scored}/{scan.counts.total || '?'} scored</span>
+                <span className="text-aq-xs tabular-nums text-aq-ink-faint">
+                  {scored}/{scan.counts.total || '?'} scored
+                </span>
               </div>
-              <div className="meter"><div className="meter-fill" style={{ width: `${progressPct}%` }} /></div>
+              <Progress value={progressPct} />
             </div>
           )}
 
           {/* Per-OWASP category matrix */}
           {findings && categories.length > 0 && (
-            <div className="card stack" style={{ gap: 'var(--sp-3)' }}>
-              <div className="card-title">By OWASP category</div>
-              <div className="table-wrap">
-                <table className="data">
+            <div className={`flex flex-col gap-3 ${CARD_CLS}`}>
+              <SectionHeader icon={IconGrid2} tone="neutral" title="By OWASP category" />
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-aq-sm">
                   <thead>
-                    <tr>
-                      <th>Category</th><th>OWASP</th>
-                      <th className="num">Probes</th><th className="num">Pass</th>
-                      <th className="num">Fail</th><th className="num">Review</th>
+                    <tr className="bg-aq-zebra text-left">
+                      {['Category', 'OWASP', 'Probes', 'Pass', 'Fail', 'Review'].map((h, i) => (
+                        <th
+                          key={h}
+                          className={`px-3.5 py-2.5 text-aq-caption font-semibold uppercase tracking-aq-wide text-aq-ink-muted ${
+                            i >= 2 ? 'text-right' : ''
+                          }`}
+                        >
+                          {h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
                     {categories.map((c) => (
-                      <tr key={c.owasp}>
-                        <td>{c.category}</td>
-                        <td className="mono faint">{c.owasp}</td>
-                        <td className="num tnum">{c.total}</td>
-                        <td className="num tnum pass">{c.pass}</td>
-                        <td className="num tnum">{c.fail > 0 ? <span className="fail">{c.fail}</span> : 0}</td>
-                        <td className="num tnum">{c.inconclusive + c.error > 0 ? <span className="warn">{c.inconclusive + c.error}</span> : 0}</td>
+                      <tr key={c.owasp} className="border-t border-aq-border">
+                        <td className="px-3.5 py-2.5 text-aq-ink">{c.category}</td>
+                        <td className="px-3.5 py-2.5 font-mono text-aq-ink-faint">{c.owasp}</td>
+                        <td className="px-3.5 py-2.5 text-right tabular-nums text-aq-ink-muted">{c.total}</td>
+                        <td className="px-3.5 py-2.5 text-right tabular-nums text-aq-good">{c.pass}</td>
+                        <td className="px-3.5 py-2.5 text-right tabular-nums">
+                          {c.fail > 0 ? <span className="text-aq-bad">{c.fail}</span> : 0}
+                        </td>
+                        <td className="px-3.5 py-2.5 text-right tabular-nums">
+                          {c.inconclusive + c.error > 0 ? (
+                            <span className="text-aq-warn">{c.inconclusive + c.error}</span>
+                          ) : (
+                            0
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -302,62 +454,82 @@ export default function ScanResultsPage() {
 
           {/* Findings */}
           {findings && (
-            <div className="card stack" style={{ gap: 'var(--sp-3)' }}>
-              <div className="card-header" style={{ margin: 0 }}>
-                <div>
-                  <div className="card-title">Findings</div>
-                  <div className="card-desc">FAIL = the agent complied (vulnerability). PASS = it resisted.</div>
+            <div className={`flex flex-col gap-3 ${CARD_CLS}`}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-col gap-0.5">
+                  <div className="text-aq-md font-semibold text-aq-ink">Findings</div>
+                  <div className="text-aq-sm text-aq-ink-muted">
+                    FAIL = the agent complied (vulnerability). PASS = it resisted.
+                  </div>
                 </div>
-                <div className="cluster" style={{ gap: 'var(--sp-1)' }}>
+                <div className="flex flex-wrap items-center gap-1.5">
                   {(['ALL', 'FAIL', 'INCONCLUSIVE', 'PASS', 'ERROR'] as VerdictFilter[]).map((v) => (
-                    <button
+                    <Chip
                       key={v}
-                      type="button"
-                      className={`btn btn-sm ${verdictFilter === v ? 'btn-secondary' : 'btn-ghost'}`}
+                      size="sm"
+                      tone="neutral"
+                      selected={verdictFilter === v}
                       onClick={() => setVerdictFilter(v)}
                     >
                       {v === 'ALL' ? 'All' : v}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
               </div>
+
               {filtered.length === 0 && (
-                <div className="faint" style={{ fontSize: '0.85rem' }}>No findings match this filter.</div>
+                <div className="text-aq-sm text-aq-ink-faint">No findings match this filter.</div>
               )}
-              <div className="stack" style={{ gap: 'var(--sp-2)' }}>
+
+              <div className="flex flex-col gap-2">
                 {filtered.map((f) => {
                   const j = judgeInfo(f.judge);
                   const overrode = f.tier1Verdict && f.tier1Verdict !== f.verdict;
+                  const vv = verdictView(f.verdict);
                   return (
-                    <div key={f.id} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: 'var(--sp-3) var(--sp-4)', background: 'var(--bg-elevated)' }}>
-                      <div className="between cluster" style={{ gap: 'var(--sp-2)' }}>
-                        <div className="cluster" style={{ gap: 'var(--sp-2)' }}>
-                          <span className="mono" style={{ fontSize: '0.82rem' }}>{f.probeId}</span>
-                          <span className="muted" style={{ fontSize: '0.85rem' }}>{f.category}</span>
-                          <span className="faint mono" style={{ fontSize: '0.78rem' }}>{f.owasp}</span>
-                          <span className={`badge badge-${f.severity}`}>{f.severity}</span>
+                    <div
+                      key={f.id}
+                      className="rounded-md border border-aq-border bg-aq-zebra px-4 py-3"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-aq-xs text-aq-ink">{f.probeId}</span>
+                          <span className="text-aq-sm text-aq-ink-muted">{f.category}</span>
+                          <span className="font-mono text-aq-xs text-aq-ink-faint">{f.owasp}</span>
+                          <Chip size="sm" tone={severityTone(f.severity)}>
+                            {f.severity}
+                          </Chip>
                         </div>
-                        <span className={pillClass(f.verdict)}>{f.verdict}</span>
+                        <StatusBadge tone={vv.tone} icon={vv.icon} label={f.verdict} />
                       </div>
-                      <div className="muted" style={{ fontSize: '0.9rem', marginTop: 'var(--sp-2)' }}>{f.reason}</div>
+                      <div className="mt-2 text-aq-sm text-aq-ink-muted">{f.reason}</div>
                       {overrode && (
-                        <div className="faint" style={{ fontSize: '0.82rem', marginTop: 'var(--sp-1)' }}>
-                          judge overrode Tier-1 <span className="mono">{f.tier1Verdict}</span> → <span className="mono">{f.verdict}</span>
+                        <div className="mt-1 text-aq-xs text-aq-ink-faint">
+                          judge overrode Tier-1 <span className="font-mono">{f.tier1Verdict}</span> →{' '}
+                          <span className="font-mono">{f.verdict}</span>
                         </div>
                       )}
-                      <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 'var(--sp-2)' }} onClick={() => toggle(f.id)}>
-                        {open[f.id] ? 'Hide' : 'Show'} response{j ? ' + judge' : ''}
-                      </button>
-                      {open[f.id] && (
-                        <div className="stack" style={{ gap: 'var(--sp-2)', marginTop: 'var(--sp-2)' }}>
+                      <div className="mt-2">
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          onClick={() => toggle(f.id)}
+                        >
+                          {open[f.id] ? 'Hide' : 'Show'} response{j ? ' + judge' : ''}
+                        </Button>
+                      </div>
+                      <Collapsible open={!!open[f.id]}>
+                        <div className="mt-2 flex flex-col gap-2">
                           {j?.rationale && (
-                            <div className="notice notice-accent" style={{ fontSize: '0.85rem' }}>
+                            <Banner tone="info" icon={IconShield}>
                               <b>Judge{j.model ? ` (${j.model})` : ''}:</b> {j.rationale}
-                            </div>
+                            </Banner>
                           )}
-                          <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '0.82rem', background: 'var(--surface-2)', padding: 'var(--sp-3)', borderRadius: 'var(--radius-sm)', margin: 0, overflowX: 'auto' }}>{f.responseText || '(empty response)'}</pre>
+                          <pre className="m-0 overflow-x-auto rounded-md bg-aq-surface p-3 font-mono text-aq-xs text-aq-ink whitespace-pre-wrap">
+                            {f.responseText || '(empty response)'}
+                          </pre>
                         </div>
-                      )}
+                      </Collapsible>
                     </div>
                   );
                 })}

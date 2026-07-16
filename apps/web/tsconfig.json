@@ -15,7 +15,15 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared/ui": ["../../design-system/primitives/ui"],
+      "@shared/ui/*": ["../../design-system/primitives/ui/*"],
+      "@shared/icons": ["../../design-system/primitives/icons"],
+      "@shared/icons/*": ["../../design-system/primitives/icons/*"],
+      "@shared/hooks": ["../../design-system/primitives/hooks"],
+      "@shared/hooks/*": ["../../design-system/primitives/hooks/*"],
+      "@shared/motion": ["../../design-system/primitives/motion"],
+      "@shared/motion/*": ["../../design-system/primitives/motion/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

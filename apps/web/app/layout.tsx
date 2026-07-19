@@ -70,12 +70,6 @@ export default function RootLayout({
               >
                 New scan
               </a>
-              <a
-                href="/scans"
-                className="rounded-aq-xs px-2.5 py-1.5 transition-colors hover:bg-aq-accent-soft hover:text-aq-ink"
-              >
-                Scans
-              </a>
             </nav>
           </div>
         </header>

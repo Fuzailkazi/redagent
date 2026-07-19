@@ -11,6 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@armoriq/engine": "workspace:*",
+    "@armoriq/judge": "workspace:*",
+    "@armoriq/reporting": "workspace:*",
     "@armoriq/schema": "workspace:*",
     "@tailwindcss/postcss": "^4.3.2",
     "@xyflow/react": "^12.11.2",

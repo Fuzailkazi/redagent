@@ -8,8 +8,13 @@ const primitives = path.resolve(__dirname, '../../design-system/primitives');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // @armoriq/schema is a workspace TS package; let Next transpile it.
-  transpilePackages: ['@armoriq/schema'],
+  // Workspace TS packages the app imports directly; let Next transpile them.
+  transpilePackages: [
+    '@armoriq/schema',
+    '@armoriq/engine',
+    '@armoriq/reporting',
+    '@armoriq/judge',
+  ],
   // The design-system primitives are vendored OUTSIDE apps/web. Allow Next to
   // resolve + compile source imported from that sibling tree.
   experimental: {

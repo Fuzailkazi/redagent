@@ -1,57 +1,59 @@
 'use client';
 
 /**
- * Home — two ways to start a scan:
- *   • Easy mode (default): paste the agent URL, we auto-detect its request/response
- *     shape (JSON or SSE) via POST /detect, then create the target + scan.
+ * Home — paste an agent URL (or configure it), run a scan, see the report.
+ *
+ * The scan runs in-process (POST /api/scan) and returns everything in one
+ * response; the result is held in memory and rendered inline. Nothing is stored.
+ *   • Easy mode: paste the URL, we auto-detect its request/response shape.
  *   • Advanced: full manual target config for auth'd or non-standard agents.
  */
 
 import { useState, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import type { Config } from '@armoriq/schema';
-import {
-  Chip,
-  Button,
-  Banner,
-  FormField,
-  SegmentedControl,
-} from '@shared/ui';
+import { Chip, Button, Banner, FormField, SegmentedControl } from '@shared/ui';
 import { IconRadar, IconPlay } from '@shared/icons';
 import {
-  createScan,
-  createTarget,
   detect,
+  runScan,
   ApiError,
   type Environment,
+  type RunScanResult,
   type ScanProfile,
 } from '@/lib/api';
+import { ScanReport } from '@/components/ScanReport';
 
 const PROFILES: { value: ScanProfile; label: string; desc: string }[] = [
-  { value: 'quick', label: 'Quick', desc: 'Fast pattern checks, no LLM.' },
-  { value: 'standard', label: 'Standard', desc: 'LLM judge on unclear results.' },
-  { value: 'deep', label: 'Deep', desc: 'LLM judge on every response. Most accurate.' },
+  { value: 'quick', label: 'Quick', desc: 'Fast pattern checks, no LLM. Best for a live demo.' },
+  { value: 'standard', label: 'Standard', desc: 'LLM judge on unclear results (needs OPENAI_API_KEY).' },
+  { value: 'deep', label: 'Deep', desc: 'LLM judge on every response. Most accurate, slowest.' },
 ];
 
 const PROFILE_OPTIONS = PROFILES.map((p) => ({ value: p.value, label: p.label }));
 
-/** Shared control styling — token-only, no arbitrary sizes. */
 const INPUT_CLS =
   'h-9 w-full rounded-md border border-aq-border bg-aq-surface px-3 text-aq-sm text-aq-ink placeholder:text-aq-ink-muted outline-none transition-colors focus:border-aq-accent disabled:cursor-not-allowed disabled:opacity-60';
 const MONO_INPUT_CLS = `${INPUT_CLS} font-mono`;
 const SELECT_CLS = INPUT_CLS;
 const TEXTAREA_CLS =
   'w-full rounded-md border border-aq-border bg-aq-surface px-3 py-2 font-mono text-aq-sm text-aq-ink placeholder:text-aq-ink-muted outline-none transition-colors focus:border-aq-accent disabled:cursor-not-allowed disabled:opacity-60';
-const CARD_CLS =
-  'rounded-lg border border-aq-border bg-aq-surface p-5 shadow-aq-card';
+const CARD_CLS = 'rounded-lg border border-aq-border bg-aq-surface p-5 shadow-aq-card';
 
 function hostOf(url: string): string {
-  try { return new URL(url).host; } catch { return 'agent'; }
+  try {
+    return new URL(url).host;
+  } catch {
+    return 'agent';
+  }
 }
 
 export default function HomePage() {
-  const router = useRouter();
   const [advanced, setAdvanced] = useState(false);
+  const [result, setResult] = useState<RunScanResult | null>(null);
+
+  if (result) {
+    return <ScanReport result={result} onNewScan={() => setResult(null)} />;
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -76,7 +78,7 @@ export default function HomePage() {
         ]}
       />
 
-      {!advanced ? <EasyMode router={router} /> : <AdvancedMode router={router} />}
+      {!advanced ? <EasyMode onResult={setResult} /> : <AdvancedMode onResult={setResult} />}
     </div>
   );
 }
@@ -85,9 +87,9 @@ export default function HomePage() {
 /* Easy mode — paste a URL                                                    */
 /* -------------------------------------------------------------------------- */
 
-function EasyMode({ router }: { router: ReturnType<typeof useRouter> }) {
+function EasyMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
   const [url, setUrl] = useState('');
-  const [profile, setProfile] = useState<ScanProfile>('deep');
+  const [profile, setProfile] = useState<ScanProfile>('quick');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -95,14 +97,19 @@ function EasyMode({ router }: { router: ReturnType<typeof useRouter> }) {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!url.trim()) { setError('Paste your agent URL first.'); return; }
+    if (!url.trim()) {
+      setError('Paste your agent URL first.');
+      return;
+    }
 
     setBusy(true);
     try {
       setStatus('Probing your agent…');
       const d = await detect(url.trim());
       const stream = d.target.responseMode === 'sse' ? ' · streaming' : '';
-      setStatus(`Detected — sends "${d.bodyShape}", reads "${d.target.responsePath || 'plain text'}"${stream}. Reply: "${d.sample.slice(0, 60)}…" Starting scan…`);
+      setStatus(
+        `Detected — sends "${d.bodyShape}", reads "${d.target.responsePath || 'plain text'}"${stream}. Firing 30 probes…`,
+      );
 
       const host = hostOf(d.target.url);
       const config: Config = {
@@ -117,16 +124,17 @@ function EasyMode({ router }: { router: ReturnType<typeof useRouter> }) {
           ...(d.target.responseMode ? { responseMode: d.target.responseMode } : {}),
           ...(d.target.sseEvent ? { sseEvent: d.target.sseEvent } : {}),
         },
-        run: { concurrency: 2, delaySeconds: 0.5, timeoutMs: 60000 },
+        run: { concurrency: 4, delaySeconds: 0.3, timeoutMs: 30000 },
       };
-      const { id } = await createTarget({ name: host, config });
-      const { scanId } = await createScan(id, { profile });
-      router.push(`/scans/${scanId}`);
+      const res = await runScan(config, profile);
+      onResult(res);
     } catch (err) {
       setStatus(null);
       setBusy(false);
       if (err instanceof ApiError && err.status === 422) {
-        setError("We couldn't auto-detect this agent (it may need an API key or use an unusual format). Try Advanced setup below.");
+        setError(
+          "We couldn't auto-detect this agent (it may need an API key or use an unusual format). Try Advanced setup below.",
+        );
       } else {
         setError(err instanceof Error ? err.message : 'Something went wrong.');
       }
@@ -168,7 +176,7 @@ function EasyMode({ router }: { router: ReturnType<typeof useRouter> }) {
 
       <div>
         <Button type="submit" variant="primary" leading={IconRadar} loading={busy} disabled={busy}>
-          {busy ? 'Working…' : 'Scan my agent'}
+          {busy ? 'Scanning…' : 'Scan my agent'}
         </Button>
       </div>
     </form>
@@ -182,7 +190,7 @@ function EasyMode({ router }: { router: ReturnType<typeof useRouter> }) {
 const DEFAULT_HEADERS = '{\n  "Content-Type": "application/json"\n}';
 const DEFAULT_BODY = '{\n  "message": "{{PROMPT}}"\n}';
 
-function AdvancedMode({ router }: { router: ReturnType<typeof useRouter> }) {
+function AdvancedMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
   const [name, setName] = useState('');
   const [environment, setEnvironment] = useState<Environment>('development');
   const [url, setUrl] = useState('');
@@ -192,7 +200,7 @@ function AdvancedMode({ router }: { router: ReturnType<typeof useRouter> }) {
   const [responsePath, setResponsePath] = useState('choices.0.message.content');
   const [responseMode, setResponseMode] = useState<'json' | 'sse'>('json');
   const [sseEvent, setSseEvent] = useState('content');
-  const [profile, setProfile] = useState<ScanProfile>('deep');
+  const [profile, setProfile] = useState<ScanProfile>('quick');
   const [authorized, setAuthorized] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,9 +214,22 @@ function AdvancedMode({ router }: { router: ReturnType<typeof useRouter> }) {
     }
     let headers: Record<string, string>;
     let bodyTemplate: unknown;
-    try { headers = JSON.parse(headersText || '{}'); } catch { setError('Headers must be valid JSON.'); return; }
-    try { bodyTemplate = JSON.parse(bodyText || '{}'); } catch { setError('Body template must be valid JSON.'); return; }
-    if (!JSON.stringify(bodyTemplate).includes('{{PROMPT}}')) { setError('Body template must contain "{{PROMPT}}".'); return; }
+    try {
+      headers = JSON.parse(headersText || '{}');
+    } catch {
+      setError('Headers must be valid JSON.');
+      return;
+    }
+    try {
+      bodyTemplate = JSON.parse(bodyText || '{}');
+    } catch {
+      setError('Body template must be valid JSON.');
+      return;
+    }
+    if (!JSON.stringify(bodyTemplate).includes('{{PROMPT}}')) {
+      setError('Body template must contain "{{PROMPT}}".');
+      return;
+    }
 
     const config: Config = {
       target: {
@@ -221,17 +242,22 @@ function AdvancedMode({ router }: { router: ReturnType<typeof useRouter> }) {
         responsePath: responsePath.trim(),
         ...(responseMode === 'sse' ? { responseMode: 'sse', sseEvent: sseEvent.trim() || 'content' } : {}),
       },
-      run: { concurrency: 3, delaySeconds: 0.3, timeoutMs: 60000 },
+      run: { concurrency: 3, delaySeconds: 0.3, timeoutMs: 30000 },
     };
 
     setBusy(true);
     try {
-      const { id } = await createTarget({ name: config.target.name, config });
-      const { scanId } = await createScan(id, { profile, authorize: environment === 'production' ? authorized : undefined });
-      router.push(`/scans/${scanId}`);
+      const res = await runScan(config, profile, environment === 'production' ? authorized : false);
+      onResult(res);
     } catch (err) {
       setBusy(false);
-      setError(err instanceof ApiError ? `${err.message} (HTTP ${err.status})` : err instanceof Error ? err.message : 'Failed.');
+      setError(
+        err instanceof ApiError
+          ? `${err.message} (HTTP ${err.status})`
+          : err instanceof Error
+            ? err.message
+            : 'Failed.',
+      );
     }
   }
 
@@ -250,7 +276,9 @@ function AdvancedMode({ router }: { router: ReturnType<typeof useRouter> }) {
         </div>
         <FormField label="Environment">
           <select className={SELECT_CLS} value={environment} onChange={(e) => setEnvironment(e.target.value as Environment)}>
-            <option value="development">development</option><option value="staging">staging</option><option value="production">production</option>
+            <option value="development">development</option>
+            <option value="staging">staging</option>
+            <option value="production">production</option>
           </select>
         </FormField>
       </div>
@@ -262,7 +290,10 @@ function AdvancedMode({ router }: { router: ReturnType<typeof useRouter> }) {
           </FormField>
         </div>
         <FormField label="Method">
-          <select className={SELECT_CLS} value={method} onChange={(e) => setMethod(e.target.value)}><option>POST</option><option>GET</option></select>
+          <select className={SELECT_CLS} value={method} onChange={(e) => setMethod(e.target.value)}>
+            <option>POST</option>
+            <option>GET</option>
+          </select>
         </FormField>
       </div>
 
@@ -284,7 +315,10 @@ function AdvancedMode({ router }: { router: ReturnType<typeof useRouter> }) {
           </FormField>
         </div>
         <FormField label="Response mode">
-          <select className={SELECT_CLS} value={responseMode} onChange={(e) => setResponseMode(e.target.value as 'json' | 'sse')}><option value="json">JSON</option><option value="sse">SSE (stream)</option></select>
+          <select className={SELECT_CLS} value={responseMode} onChange={(e) => setResponseMode(e.target.value as 'json' | 'sse')}>
+            <option value="json">JSON</option>
+            <option value="sse">SSE (stream)</option>
+          </select>
         </FormField>
         {responseMode === 'sse' && (
           <FormField label="SSE event">
@@ -313,7 +347,7 @@ function AdvancedMode({ router }: { router: ReturnType<typeof useRouter> }) {
       {error && <Banner tone="bad">{error}</Banner>}
       <div>
         <Button type="submit" variant="primary" leading={IconPlay} loading={busy} disabled={busy}>
-          {busy ? 'Starting…' : 'Run scan'}
+          {busy ? 'Scanning…' : 'Run scan'}
         </Button>
       </div>
     </form>

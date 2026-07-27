@@ -34,8 +34,6 @@ import type { IconProps } from '@shared/icons';
 import type { Verdict } from '@armoriq/schema';
 import type { Finding, RunScanResult } from '@/lib/types';
 
-type VerdictFilter = 'ALL' | Verdict;
-
 const VERDICT_RANK: Record<Verdict, number> = {
   FAIL: 0,
   INCONCLUSIVE: 1,
@@ -145,7 +143,15 @@ export function ScanReport({
   onNewScan: () => void;
 }) {
   const { scan, findings, reportJson, reportMd } = result;
-  const [verdictFilter, setVerdictFilter] = useState<VerdictFilter>('ALL');
+  const [tab, setTab] = useState<Verdict>(() =>
+    scan.counts.fail > 0
+      ? 'FAIL'
+      : scan.counts.inconclusive > 0
+        ? 'INCONCLUSIVE'
+        : scan.counts.error > 0
+          ? 'ERROR'
+          : 'PASS',
+  );
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
   const toggle = useCallback((fid: string) => {
@@ -161,8 +167,7 @@ export function ScanReport({
       ),
     [findings],
   );
-  const filtered =
-    verdictFilter === 'ALL' ? sorted : sorted.filter((f) => f.verdict === verdictFilter);
+  const filtered = sorted.filter((f) => f.verdict === tab);
 
   const categories = useMemo(() => {
     const map = new Map<
@@ -182,6 +187,49 @@ export function ScanReport({
     }
     return [...map.values()].sort((a, b) => a.owasp.localeCompare(b.owasp));
   }, [findings]);
+
+  // Clear, plain-language verdict: how many vulnerabilities (FAILs) and how bad.
+  const vulnCount = scan.counts.fail;
+  const needsReview = scan.counts.inconclusive + scan.counts.error;
+  const failSeverities = useMemo(() => {
+    const order = ['critical', 'high', 'medium', 'low'];
+    const counts: Record<string, number> = {};
+    for (const f of findings) {
+      if (f.verdict === 'FAIL') counts[f.severity] = (counts[f.severity] ?? 0) + 1;
+    }
+    return order
+      .filter((s) => counts[s])
+      .map((s) => `${counts[s]} ${s}`)
+      .join(' · ');
+  }, [findings]);
+
+  // Findings tabs — travel between Failed / Needs review / Passed (+ Errors if any).
+  const tabs = useMemo(() => {
+    const defs: { key: Verdict; label: string; count: number; countClass: string }[] = [
+      {
+        key: 'FAIL',
+        label: 'Failed',
+        count: scan.counts.fail,
+        countClass: scan.counts.fail > 0 ? 'text-aq-bad' : 'text-aq-ink-faint',
+      },
+      {
+        key: 'INCONCLUSIVE',
+        label: 'Needs review',
+        count: scan.counts.inconclusive,
+        countClass: scan.counts.inconclusive > 0 ? 'text-aq-warn' : 'text-aq-ink-faint',
+      },
+      {
+        key: 'PASS',
+        label: 'Passed',
+        count: scan.counts.pass,
+        countClass: scan.counts.pass > 0 ? 'text-aq-good' : 'text-aq-ink-faint',
+      },
+    ];
+    if (scan.counts.error > 0) {
+      defs.push({ key: 'ERROR', label: 'Errors', count: scan.counts.error, countClass: 'text-aq-ink-muted' });
+    }
+    return defs;
+  }, [scan.counts]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -224,6 +272,35 @@ export function ScanReport({
           </button>
         </div>
       </div>
+
+      {/* Headline verdict — is this a bad result, and how many vulnerabilities? */}
+      {vulnCount > 0 ? (
+        <Banner tone="bad" icon={IconErrorCircle}>
+          <b>
+            {vulnCount} vulnerabilit{vulnCount === 1 ? 'y' : 'ies'} found.
+          </b>{' '}
+          The agent complied with {vulnCount} of {scan.counts.total} attacks
+          {failSeverities ? ` (${failSeverities})` : ''}. Open the <b>Failed</b> tab below to see each
+          one.
+          {needsReview > 0 && (
+            <>
+              {' '}
+              {needsReview} response{needsReview === 1 ? '' : 's'} also need review.
+            </>
+          )}
+        </Banner>
+      ) : (
+        <Banner tone="good" icon={IconCheckCircle}>
+          <b>No vulnerabilities found.</b> The agent resisted all {scan.counts.total} attacks.
+          {needsReview > 0 && (
+            <>
+              {' '}
+              {needsReview} response{needsReview === 1 ? '' : 's'} need review — check the{' '}
+              <b>Needs review</b> tab.
+            </>
+          )}
+        </Banner>
+      )}
 
       {/* Scorecard */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -308,30 +385,48 @@ export function ScanReport({
 
       {/* Findings */}
       <div className={`flex flex-col gap-3 ${CARD_CLS}`}>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex flex-col gap-0.5">
-            <div className="text-aq-md font-semibold text-aq-ink">Findings</div>
-            <div className="text-aq-sm text-aq-ink-muted">
-              FAIL = the agent complied (vulnerability). PASS = it resisted.
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {(['ALL', 'FAIL', 'INCONCLUSIVE', 'PASS', 'ERROR'] as VerdictFilter[]).map((v) => (
-              <Chip
-                key={v}
-                size="sm"
-                tone="neutral"
-                selected={verdictFilter === v}
-                onClick={() => setVerdictFilter(v)}
-              >
-                {v === 'ALL' ? 'All' : v}
-              </Chip>
-            ))}
+        <div className="flex flex-col gap-0.5">
+          <div className="text-aq-md font-semibold text-aq-ink">Findings</div>
+          <div className="text-aq-sm text-aq-ink-muted">
+            FAIL = the agent complied (vulnerability). PASS = it resisted.
           </div>
         </div>
 
+        {/* Tabs — travel between verdicts */}
+        <div
+          role="tablist"
+          aria-label="Findings by verdict"
+          className="flex flex-wrap gap-1 border-b border-aq-border"
+        >
+          {tabs.map((t) => {
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(t.key)}
+                className={`-mb-px inline-flex items-center gap-2 border-b-2 px-3.5 py-2 text-aq-sm font-medium transition-colors ${
+                  active
+                    ? 'border-aq-accent text-aq-ink'
+                    : 'border-transparent text-aq-ink-muted hover:text-aq-ink'
+                }`}
+              >
+                {t.label}
+                <span
+                  className={`rounded-full bg-aq-zebra px-1.5 py-0.5 text-aq-xs tabular-nums ${t.countClass}`}
+                >
+                  {t.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         {filtered.length === 0 && (
-          <div className="text-aq-sm text-aq-ink-faint">No findings match this filter.</div>
+          <div className="text-aq-sm text-aq-ink-faint">
+            No {tab === 'FAIL' ? 'failed' : tab === 'PASS' ? 'passed' : tab.toLowerCase()} findings.
+          </div>
         )}
 
         <div className="flex flex-col gap-2">

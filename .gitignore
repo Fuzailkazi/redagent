@@ -27,3 +27,5 @@ python/.venv/
 
 # OS / editor cruft
 .DS_Store
+.claude/
+

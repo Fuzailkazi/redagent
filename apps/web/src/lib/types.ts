@@ -4,7 +4,7 @@
  * runtime, so importing it never drags the engine into the client bundle.
  */
 
-import type { Verdict } from '@armoriq/schema';
+import type { Severity, Verdict } from '@armoriq/schema';
 
 export type { Config } from '@armoriq/schema';
 
@@ -79,4 +79,34 @@ export interface DetectResponse {
   target: DetectedTarget;
   bodyShape: string;
   sample: string;
+}
+
+/* ---- Streaming SSE (POST /api/scan with stream=true) ---- */
+
+export interface StreamInitEvent {
+  total: number;
+  targetName: string;
+  profile: ScanProfile;
+}
+
+export interface StreamProbeEvent {
+  index: number;
+  total: number;
+  probeId: string;
+  category: string;
+  owasp: string;
+  severity: Severity;
+  verdict: Verdict;
+  reason: string;
+}
+
+export interface StreamErrorEvent {
+  error: string;
+  message: string;
+}
+
+export interface ScanStreamCallbacks {
+  onInit?: (data: StreamInitEvent) => void;
+  onProbe?: (data: StreamProbeEvent) => void;
+  onError?: (err: Error) => void;
 }

@@ -22,7 +22,13 @@ import {
   buildMarkdownReport,
   getEngineVersion,
 } from '@armoriq/reporting';
-import { ConfigSchema, validateLibrary, type Judge } from '@armoriq/schema';
+import {
+  ConfigSchema,
+  validateLibrary,
+  type Config,
+  type Judge,
+  type ProbeResult,
+} from '@armoriq/schema';
 
 import libraryData from '../../attacks/attack_library.json';
 import type { Finding, RunScanResult, Scan, ScanProfile } from './types';
@@ -50,45 +56,16 @@ function judgeModeForProfile(profile: ScanProfile): JudgeMode | null {
   return null; // 'quick'
 }
 
-/**
- * Run every probe in the bundled library against the posted target config.
- *
- * @throws {AuthorizationRequiredError} for a production target without `authorize`.
- * @throws {ZodError} if the config is malformed (surfaced as 400 by the route).
- */
-export async function runScanInProcess(
-  rawConfig: unknown,
+function assembleRunResult(
+  config: Config,
   profile: ScanProfile,
-  authorize: boolean,
-): Promise<RunScanResult> {
-  const config = ConfigSchema.parse(rawConfig);
-
-  // Authorization hard gate — enforced here, not just in the UI.
-  if (config.target.environment === 'production' && !authorize) {
-    throw new AuthorizationRequiredError(config.target.name);
-  }
-
-  const startedAt = new Date().toISOString();
-
-  // Judge is optional: only when the profile asks for it AND a key is present.
-  // No key => Tier-1 only, judgeModel = null. We never fail a scan for this.
-  const wantJudge = judgeModeForProfile(profile);
-  let judge: Judge | undefined;
-  let judgeModel: string | null = null;
-  if (wantJudge && process.env.OPENAI_API_KEY) {
-    judgeModel = process.env.JUDGE_MODEL ?? 'gpt-4o';
-    judge = createJudge({ model: judgeModel });
-  }
-
-  const agent = createHttpAgent(config.target, { run: config.run });
-  const results = await runScan(library, agent, {
-    run: config.run,
-    judge,
-    judgeMode: wantJudge ?? 'inconclusive',
-  });
-
+  wantJudge: JudgeMode | null,
+  judgeModel: string | null,
+  results: ProbeResult[],
+  startedAt: string,
+  finishedAt: string,
+): RunScanResult {
   const scoreResult = score(results);
-  const finishedAt = new Date().toISOString();
   const engineVersion = getEngineVersion();
 
   const scanResult = buildScanResult({
@@ -147,4 +124,125 @@ export async function runScanInProcess(
     reportJson: buildJsonReport(scanResult),
     reportMd: buildMarkdownReport(scanResult),
   };
+}
+
+/**
+ * Run every probe in the bundled library against the posted target config.
+ *
+ * @throws {AuthorizationRequiredError} for a production target without `authorize`.
+ * @throws {ZodError} if the config is malformed (surfaced as 400 by the route).
+ */
+export async function runScanInProcess(
+  rawConfig: unknown,
+  profile: ScanProfile,
+  authorize: boolean,
+): Promise<RunScanResult> {
+  const config = ConfigSchema.parse(rawConfig);
+
+  // Authorization hard gate — enforced here, not just in the UI.
+  if (config.target.environment === 'production' && !authorize) {
+    throw new AuthorizationRequiredError(config.target.name);
+  }
+
+  const startedAt = new Date().toISOString();
+
+  // Judge is optional: only when the profile asks for it AND a key is present.
+  // No key => Tier-1 only, judgeModel = null. We never fail a scan for this.
+  const wantJudge = judgeModeForProfile(profile);
+  let judge: Judge | undefined;
+  let judgeModel: string | null = null;
+  if (wantJudge && process.env.OPENAI_API_KEY) {
+    judgeModel = process.env.JUDGE_MODEL ?? 'gpt-4o';
+    judge = createJudge({ model: judgeModel });
+  }
+
+  const agent = createHttpAgent(config.target, { run: config.run });
+  const results = await runScan(library, agent, {
+    run: config.run,
+    judge,
+    judgeMode: wantJudge ?? 'inconclusive',
+  });
+
+  const finishedAt = new Date().toISOString();
+  return assembleRunResult(
+    config,
+    profile,
+    wantJudge,
+    judgeModel,
+    results,
+    startedAt,
+    finishedAt,
+  );
+}
+
+/**
+ * Run every probe in the bundled library against the target config, streaming
+ * progress events via the provided emit callback.
+ */
+export async function streamScanInProcess(
+  config: Config,
+  profile: ScanProfile,
+  emit: (event: string, data: unknown) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  if (signal?.aborted) return;
+
+  const startedAt = new Date().toISOString();
+
+  const wantJudge = judgeModeForProfile(profile);
+  let judge: Judge | undefined;
+  let judgeModel: string | null = null;
+  if (wantJudge && process.env.OPENAI_API_KEY) {
+    judgeModel = process.env.JUDGE_MODEL ?? 'gpt-4o';
+    judge = createJudge({ model: judgeModel });
+  }
+
+  const agent = createHttpAgent(config.target, { run: config.run });
+
+  emit('init', {
+    total: library.probes.length,
+    targetName: config.target.name,
+    profile,
+  });
+
+  let completed = 0;
+  const results = await runScan(library, agent, {
+    run: config.run,
+    judge,
+    judgeMode: wantJudge ?? 'inconclusive',
+    signal,
+    onResult(result) {
+      completed++;
+      emit('probe', {
+        index: completed,
+        total: library.probes.length,
+        probeId: result.probe.id,
+        category: result.probe.category,
+        owasp: result.probe.owasp,
+        severity: result.probe.severity,
+        verdict: result.verdict,
+        reason: result.reason,
+      });
+    },
+  });
+
+  if (signal?.aborted) return;
+
+  const finishedAt = new Date().toISOString();
+  const runResult = assembleRunResult(
+    config,
+    profile,
+    wantJudge,
+    judgeModel,
+    results,
+    startedAt,
+    finishedAt,
+  );
+
+  emit('complete', {
+    scan: { ...runResult.scan, counts: runResult.scan.counts },
+    findings: runResult.findings,
+    reportJson: runResult.reportJson,
+    reportMd: runResult.reportMd,
+  });
 }

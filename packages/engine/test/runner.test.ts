@@ -106,7 +106,7 @@ describe('runScan', () => {
         return { responseText: 'OK' };
       },
     };
-    const results = await runScan(
+    await runScan(
       {
         version: '1.0',
         probes: [

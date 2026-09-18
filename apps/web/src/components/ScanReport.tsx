@@ -22,7 +22,9 @@ import {
 import type { ChipTone, StatusTone } from '@shared/ui';
 import {
   IconAlert,
+  IconCheck,
   IconCheckCircle,
+  IconClipboard,
   IconDownload,
   IconErrorCircle,
   IconGrid2,
@@ -33,6 +35,11 @@ import {
 import type { IconProps } from '@shared/icons';
 import type { Verdict } from '@armoriq/schema';
 import type { Finding, RunScanResult } from '@/lib/types';
+import {
+  getRemediationForFinding,
+  generateMarkdownBadge,
+  generatePrSummary,
+} from '@/lib/remediations';
 
 const VERDICT_RANK: Record<Verdict, number> = {
   FAIL: 0,
@@ -153,9 +160,35 @@ export function ScanReport({
           : 'PASS',
   );
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [openRemediation, setOpenRemediation] = useState<Record<string, boolean>>({});
+  const [copiedPr, setCopiedPr] = useState(false);
+  const [copiedBadge, setCopiedBadge] = useState(false);
+  const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
 
   const toggle = useCallback((fid: string) => {
     setOpen((o) => ({ ...o, [fid]: !o[fid] }));
+  }, []);
+
+  const toggleRemediation = useCallback((fid: string) => {
+    setOpenRemediation((o) => ({ ...o, [fid]: !o[fid] }));
+  }, []);
+
+  const handleCopyPr = useCallback(() => {
+    navigator.clipboard.writeText(generatePrSummary(result));
+    setCopiedPr(true);
+    setTimeout(() => setCopiedPr(false), 2000);
+  }, [result]);
+
+  const handleCopyBadge = useCallback(() => {
+    navigator.clipboard.writeText(generateMarkdownBadge(scan.resiliencePct));
+    setCopiedBadge(true);
+    setTimeout(() => setCopiedBadge(false), 2000);
+  }, [scan.resiliencePct]);
+
+  const handleCopyPrompt = useCallback((fid: string, promptText: string) => {
+    navigator.clipboard.writeText(promptText);
+    setCopiedPromptId(fid);
+    setTimeout(() => setCopiedPromptId(null), 2000);
   }, []);
 
   const sorted = useMemo(
@@ -249,6 +282,24 @@ export function ScanReport({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className={LINK_BTN_CLS}
+            onClick={handleCopyPr}
+            title="Copy formatted summary to paste into a GitHub PR comment"
+          >
+            {copiedPr ? <IconCheck size={15} className="text-aq-good" /> : <IconClipboard size={15} />}
+            {copiedPr ? 'PR copied!' : 'Copy PR summary'}
+          </button>
+          <button
+            type="button"
+            className={LINK_BTN_CLS}
+            onClick={handleCopyBadge}
+            title="Copy Markdown badge for README.md"
+          >
+            {copiedBadge ? <IconCheck size={15} className="text-aq-good" /> : <IconShield size={15} />}
+            {copiedBadge ? 'Badge copied!' : 'Copy badge'}
+          </button>
           <button
             className={LINK_BTN_CLS}
             onClick={() => downloadText('report.json', 'application/json', reportJson)}
@@ -454,10 +505,19 @@ export function ScanReport({
                     <span className="font-mono">{f.verdict}</span>
                   </div>
                 )}
-                <div className="mt-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   <Button size="xs" variant="ghost" onClick={() => toggle(f.id)}>
                     {open[f.id] ? 'Hide' : 'Show'} response{j ? ' + judge' : ''}
                   </Button>
+                  {f.verdict === 'FAIL' && (
+                    <Button
+                      size="xs"
+                      variant="secondary"
+                      onClick={() => toggleRemediation(f.id)}
+                    >
+                      {openRemediation[f.id] ? 'Hide fix' : '🛠️ How to fix'}
+                    </Button>
+                  )}
                 </div>
                 <Collapsible open={!!open[f.id]}>
                   <div className="mt-2 flex flex-col gap-2">
@@ -471,6 +531,63 @@ export function ScanReport({
                     </pre>
                   </div>
                 </Collapsible>
+                {f.verdict === 'FAIL' && openRemediation[f.id] && (() => {
+                  const playbook = getRemediationForFinding(f.owasp);
+                  if (!playbook) return null;
+                  return (
+                    <div className="mt-3 flex flex-col gap-3 rounded-md border border-aq-accent/40 bg-aq-surface p-4 shadow-aq-card">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-aq-border pb-2">
+                        <div className="flex items-center gap-2">
+                          <IconShield size={16} className="text-aq-accent" />
+                          <span className="text-aq-sm font-semibold text-aq-ink">{playbook.title}</span>
+                          <span className="font-mono text-aq-xs text-aq-ink-muted">({playbook.owaspId})</span>
+                        </div>
+                        <Chip tone="accent" size="sm">Remediation Guide</Chip>
+                      </div>
+
+                      <div className="text-aq-xs text-aq-ink-muted">
+                        <b className="text-aq-ink">Root Cause:</b> {playbook.rootCause}
+                      </div>
+
+                      {playbook.systemPromptFix && (
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-aq-caption font-semibold uppercase tracking-aq-wide text-aq-ink-muted">
+                              Recommended System Prompt Hardening
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyPrompt(f.id, playbook.systemPromptFix!)}
+                              className="inline-flex items-center gap-1 text-aq-xs font-semibold text-aq-accent transition-colors hover:underline"
+                            >
+                              {copiedPromptId === f.id ? (
+                                <>
+                                  <IconCheck size={13} className="text-aq-good" /> Copied!
+                                </>
+                              ) : (
+                                <>
+                                  <IconClipboard size={13} /> Copy prompt guardrail
+                                </>
+                              )}
+                            </button>
+                          </div>
+                          <pre className="m-0 max-h-52 overflow-y-auto rounded-md border border-aq-border bg-aq-zebra p-3 font-mono text-aq-xs text-aq-ink whitespace-pre-wrap">
+                            {playbook.systemPromptFix}
+                          </pre>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-1 rounded-md border border-aq-border bg-aq-zebra/60 p-3 text-aq-xs">
+                        <span className="font-semibold text-aq-ink">Architectural Defense Pattern:</span>
+                        <p className="m-0 text-aq-ink-muted leading-relaxed">{playbook.architectureFix}</p>
+                      </div>
+
+                      <div className="text-aq-caption text-aq-ink-faint">
+                        <b className="text-aq-ink-muted">Verification Test:</b> {playbook.verificationRule}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}

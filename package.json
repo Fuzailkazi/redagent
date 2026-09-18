@@ -4,11 +4,15 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.28.2",
+  "bin": {
+    "redagent": "./bin/redagent.mjs"
+  },
   "scripts": {
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "redagent": "node ./bin/redagent.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

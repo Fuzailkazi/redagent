@@ -211,6 +211,110 @@ function EasyMode({
     }
   }
 
+  async function handleDemoScan(demoType: 'vulnerable' | 'hardened') {
+    setError(null);
+    setBusy(true);
+    const mockUrl =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/api/mock/${demoType}`
+        : `http://localhost:3000/api/mock/${demoType}`;
+    setUrl(mockUrl);
+
+    try {
+      setStatus(`Probing simulated ${demoType} agent (${mockUrl})…`);
+      const d = await detect(mockUrl);
+      const stream = d.target.responseMode === 'sse' ? ' · streaming' : '';
+      setStatus(
+        `Detected simulated ${demoType} agent (${d.bodyShape} format${stream}) — firing 30 OWASP probes…`,
+      );
+
+      const host = demoType === 'vulnerable' ? 'acme-vulnerable-bot' : 'acme-hardened-bot';
+      const config: Config = {
+        target: {
+          name: host,
+          environment: 'development',
+          url: d.target.url,
+          method: d.target.method ?? 'POST',
+          bodyTemplate: d.target.bodyTemplate,
+          responsePath: d.target.responsePath,
+        },
+        run: { concurrency: 4, delaySeconds: 0.1, timeoutMs: 30000 },
+      };
+
+      const ac = new AbortController();
+      abortControllerRef.current = ac;
+      setScanState(createInitialScanState(host, 'development', profile));
+      onScanningChange?.(true);
+
+      const res = await runScanStream(
+        config,
+        profile,
+        false,
+        {
+          onInit: (data) => setScanState((s) => (s ? handleInitEvent(s, data) : s)),
+          onProbe: (p) => setScanState((s) => (s ? handleProbeEvent(s, p) : s)),
+        },
+        ac.signal,
+      );
+
+      setScanState(null);
+      setBusy(false);
+      onScanningChange?.(false);
+      onResult(res);
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        setScanState(null);
+        setBusy(false);
+        setStatus('Scan cancelled.');
+        onScanningChange?.(false);
+        return;
+      }
+      // Fallback directly to in-process mock scan config if detect network step fails locally
+      try {
+        const host = demoType === 'vulnerable' ? 'acme-vulnerable-bot' : 'acme-hardened-bot';
+        setStatus(`Running direct scan on simulated ${demoType} agent…`);
+        const directConfig: Config = {
+          target: {
+            name: host,
+            environment: 'development',
+            url: mockUrl,
+            method: 'POST',
+            bodyTemplate: { message: '{{PROMPT}}' },
+            responsePath: 'reply',
+          },
+          run: { concurrency: 4, delaySeconds: 0.1, timeoutMs: 30000 },
+        };
+
+        const ac = new AbortController();
+        abortControllerRef.current = ac;
+        setScanState(createInitialScanState(host, 'development', profile));
+        onScanningChange?.(true);
+
+        const res = await runScanStream(
+          directConfig,
+          profile,
+          false,
+          {
+            onInit: (data) => setScanState((s) => (s ? handleInitEvent(s, data) : s)),
+            onProbe: (p) => setScanState((s) => (s ? handleProbeEvent(s, p) : s)),
+          },
+          ac.signal,
+        );
+
+        setScanState(null);
+        setBusy(false);
+        onScanningChange?.(false);
+        onResult(res);
+      } catch (fallbackErr) {
+        setScanState(null);
+        setStatus(null);
+        setBusy(false);
+        onScanningChange?.(false);
+        setError(fallbackErr instanceof Error ? fallbackErr.message : 'Demo scan failed.');
+      }
+    }
+  }
+
   if (scanState) {
     return <ScanProgress state={scanState} onCancel={handleCancel} />;
   }
@@ -219,6 +323,44 @@ function EasyMode({
 
   return (
     <form className={`flex flex-col gap-4 ${CARD_CLS}`} onSubmit={onSubmit}>
+      {/* 1-Click Interactive Demo Presets */}
+      <div className="flex flex-col gap-2 rounded-lg border border-aq-border bg-aq-zebra/60 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-aq-sm font-semibold text-aq-ink">🚀 Try an Interactive Demo</span>
+            <Chip tone="accent" size="sm">No Setup Required</Chip>
+          </div>
+          <span className="text-aq-caption text-aq-ink-faint">
+            Simulates realistic agent architectures & OWASP attacks in-process
+          </span>
+        </div>
+        <p className="m-0 text-aq-xs text-aq-ink-muted">
+          Don&apos;t have a live HTTP agent URL right now? Click one of the simulated targets below to see RedAgent detect the API shape, fire 30 probes with live streaming progress, and produce a resilience scorecard in seconds:
+        </p>
+        <div className="mt-1 flex flex-wrap gap-2.5">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => handleDemoScan('vulnerable')}
+            className="inline-flex items-center gap-2 rounded-md border border-aq-bad/40 bg-aq-surface px-3 py-2 text-aq-xs font-semibold text-aq-bad shadow-aq-card transition-all hover:bg-aq-bad/10 hover:border-aq-bad disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-aq-bad opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-aq-bad" />
+            </span>
+            <span>🔴 Try Vulnerable Support Bot (Fails prompt injection, tool abuse)</span>
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => handleDemoScan('hardened')}
+            className="inline-flex items-center gap-2 rounded-md border border-aq-good/40 bg-aq-surface px-3 py-2 text-aq-xs font-semibold text-aq-good shadow-aq-card transition-all hover:bg-aq-good/10 hover:border-aq-good disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span className="inline-flex h-2 w-2 rounded-full bg-aq-good" />
+            <span>🟢 Try Hardened Enterprise Bot (95%+ Resilience score)</span>
+          </button>
+        </div>
+      </div>
       <FormField
         label="Your agent URL"
         htmlFor="url"

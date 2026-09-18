@@ -34,6 +34,7 @@ export interface RunScanOptions {
    * 'deep': adjudicate every non-ERROR result (PASS/FAIL/INCONCLUSIVE).
    */
   judgeMode?: 'inconclusive' | 'deep';
+  signal?: AbortSignal;
 }
 
 const sleep = (ms: number): Promise<void> =>
@@ -145,6 +146,7 @@ export async function runScan(
 
   async function worker(): Promise<void> {
     for (;;) {
+      if (opts.signal?.aborted) return;
       const index = nextIndex++;
       if (index >= probes.length) return;
 

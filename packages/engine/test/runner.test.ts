@@ -95,6 +95,31 @@ describe('runScan', () => {
     const results = await runScan(empty, echoAgent);
     expect(results).toEqual([]);
   });
+
+  it('halts probe execution when AbortSignal is aborted', async () => {
+    const controller = new AbortController();
+    let dispatched = 0;
+    const mockAgent = {
+      send: async () => {
+        dispatched++;
+        if (dispatched === 1) controller.abort();
+        return { responseText: 'OK' };
+      },
+    };
+    const results = await runScan(
+      {
+        version: '1.0',
+        probes: [
+          { id: 'p1', category: 'c1', owasp: 'ASI01', severity: 'low', prompt: 'a', detection: { tier1: { mode: 'regex', failIfMatches: [], passIfMatches: [] } }, tags: [] },
+          { id: 'p2', category: 'c1', owasp: 'ASI01', severity: 'low', prompt: 'b', detection: { tier1: { mode: 'regex', failIfMatches: [], passIfMatches: [] } }, tags: [] },
+          { id: 'p3', category: 'c1', owasp: 'ASI01', severity: 'low', prompt: 'c', detection: { tier1: { mode: 'regex', failIfMatches: [], passIfMatches: [] } }, tags: [] },
+        ],
+      },
+      mockAgent,
+      { signal: controller.signal, run: { concurrency: 1, delaySeconds: 0 } },
+    );
+    expect(dispatched).toBeLessThan(3);
+  });
 });
 
 /**

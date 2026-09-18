@@ -9,19 +9,26 @@
  *   • Advanced: full manual target config for auth'd or non-standard agents.
  */
 
-import { useState, type FormEvent } from 'react';
+import { useState, useRef, useEffect, type FormEvent } from 'react';
 import type { Config } from '@armoriq/schema';
 import { Chip, Button, Banner, FormField, SegmentedControl } from '@shared/ui';
 import { IconRadar, IconPlay } from '@shared/icons';
 import {
   detect,
-  runScan,
+  runScanStream,
   ApiError,
   type Environment,
   type RunScanResult,
   type ScanProfile,
 } from '@/lib/api';
 import { ScanReport } from '@/components/ScanReport';
+import { ScanProgress } from '@/components/ScanProgress';
+import {
+  createInitialScanState,
+  handleInitEvent,
+  handleProbeEvent,
+  type ScanState,
+} from '@/lib/scanState';
 
 const PROFILES: { value: ScanProfile; label: string; desc: string }[] = [
   { value: 'quick', label: 'Quick', desc: 'Fast pattern checks, no LLM. Best for a live demo.' },
@@ -50,9 +57,18 @@ function hostOf(url: string): string {
 export default function HomePage() {
   const [advanced, setAdvanced] = useState(false);
   const [result, setResult] = useState<RunScanResult | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
 
   if (result) {
-    return <ScanReport result={result} onNewScan={() => setResult(null)} />;
+    return (
+      <ScanReport
+        result={result}
+        onNewScan={() => {
+          setResult(null);
+          setIsScanning(false);
+        }}
+      />
+    );
   }
 
   return (
@@ -68,17 +84,23 @@ export default function HomePage() {
         </p>
       </section>
 
-      <SegmentedControl
-        ariaLabel="Setup mode"
-        value={advanced ? 'advanced' : 'easy'}
-        onChange={(next) => setAdvanced(next === 'advanced')}
-        options={[
-          { value: 'easy', label: 'Simple' },
-          { value: 'advanced', label: 'Advanced' },
-        ]}
-      />
+      {!isScanning && (
+        <SegmentedControl
+          ariaLabel="Setup mode"
+          value={advanced ? 'advanced' : 'easy'}
+          onChange={(next) => setAdvanced(next === 'advanced')}
+          options={[
+            { value: 'easy', label: 'Simple' },
+            { value: 'advanced', label: 'Advanced' },
+          ]}
+        />
+      )}
 
-      {!advanced ? <EasyMode onResult={setResult} /> : <AdvancedMode onResult={setResult} />}
+      {!advanced ? (
+        <EasyMode onResult={setResult} onScanningChange={setIsScanning} />
+      ) : (
+        <AdvancedMode onResult={setResult} onScanningChange={setIsScanning} />
+      )}
     </div>
   );
 }
@@ -87,12 +109,32 @@ export default function HomePage() {
 /* Easy mode — paste a URL                                                    */
 /* -------------------------------------------------------------------------- */
 
-function EasyMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
+function EasyMode({
+  onResult,
+  onScanningChange,
+}: {
+  onResult: (r: RunScanResult) => void;
+  onScanningChange?: (scanning: boolean) => void;
+}) {
   const [url, setUrl] = useState('');
   const [profile, setProfile] = useState<ScanProfile>('quick');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [scanState, setScanState] = useState<ScanState | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  function handleCancel() {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -126,11 +168,39 @@ function EasyMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
         },
         run: { concurrency: 4, delaySeconds: 0.3, timeoutMs: 30000 },
       };
-      const res = await runScan(config, profile);
+
+      const ac = new AbortController();
+      abortControllerRef.current = ac;
+      setScanState(createInitialScanState(host, 'development', profile));
+      onScanningChange?.(true);
+
+      const res = await runScanStream(
+        config,
+        profile,
+        false,
+        {
+          onInit: (d) => setScanState((s) => (s ? handleInitEvent(s, d) : s)),
+          onProbe: (p) => setScanState((s) => (s ? handleProbeEvent(s, p) : s)),
+        },
+        ac.signal,
+      );
+
+      setScanState(null);
+      setBusy(false);
+      onScanningChange?.(false);
       onResult(res);
     } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        setScanState(null);
+        setBusy(false);
+        setStatus('Scan cancelled.');
+        onScanningChange?.(false);
+        return;
+      }
+      setScanState(null);
       setStatus(null);
       setBusy(false);
+      onScanningChange?.(false);
       if (err instanceof ApiError && err.status === 422) {
         setError(
           "We couldn't auto-detect this agent (it may need an API key or use an unusual format). Try Advanced setup below.",
@@ -139,6 +209,10 @@ function EasyMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
         setError(err instanceof Error ? err.message : 'Something went wrong.');
       }
     }
+  }
+
+  if (scanState) {
+    return <ScanProgress state={scanState} onCancel={handleCancel} />;
   }
 
   const selectedDesc = PROFILES.find((p) => p.value === profile)?.desc;
@@ -190,7 +264,13 @@ function EasyMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
 const DEFAULT_HEADERS = '{\n  "Content-Type": "application/json"\n}';
 const DEFAULT_BODY = '{\n  "message": "{{PROMPT}}"\n}';
 
-function AdvancedMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
+function AdvancedMode({
+  onResult,
+  onScanningChange,
+}: {
+  onResult: (r: RunScanResult) => void;
+  onScanningChange?: (scanning: boolean) => void;
+}) {
   const [name, setName] = useState('');
   const [environment, setEnvironment] = useState<Environment>('development');
   const [url, setUrl] = useState('');
@@ -203,11 +283,27 @@ function AdvancedMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
   const [profile, setProfile] = useState<ScanProfile>('quick');
   const [authorized, setAuthorized] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [scanState, setScanState] = useState<ScanState | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  function handleCancel() {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setStatus(null);
     if (environment === 'production' && !authorized) {
       setError('Production targets require the authorization checkbox.');
       return;
@@ -231,9 +327,10 @@ function AdvancedMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
       return;
     }
 
+    const targetName = name.trim() || hostOf(url);
     const config: Config = {
       target: {
-        name: name.trim() || hostOf(url),
+        name: targetName,
         environment,
         url: url.trim(),
         method,
@@ -246,11 +343,37 @@ function AdvancedMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
     };
 
     setBusy(true);
+    const ac = new AbortController();
+    abortControllerRef.current = ac;
+    setScanState(createInitialScanState(targetName, environment, profile));
+    onScanningChange?.(true);
+
     try {
-      const res = await runScan(config, profile, environment === 'production' ? authorized : false);
+      const res = await runScanStream(
+        config,
+        profile,
+        environment === 'production' ? authorized : false,
+        {
+          onInit: (d) => setScanState((s) => (s ? handleInitEvent(s, d) : s)),
+          onProbe: (p) => setScanState((s) => (s ? handleProbeEvent(s, p) : s)),
+        },
+        ac.signal,
+      );
+      setScanState(null);
+      setBusy(false);
+      onScanningChange?.(false);
       onResult(res);
     } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        setScanState(null);
+        setBusy(false);
+        setStatus('Scan cancelled.');
+        onScanningChange?.(false);
+        return;
+      }
+      setScanState(null);
       setBusy(false);
+      onScanningChange?.(false);
       setError(
         err instanceof ApiError
           ? `${err.message} (HTTP ${err.status})`
@@ -259,6 +382,10 @@ function AdvancedMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
             : 'Failed.',
       );
     }
+  }
+
+  if (scanState) {
+    return <ScanProgress state={scanState} onCancel={handleCancel} />;
   }
 
   return (
@@ -344,6 +471,7 @@ function AdvancedMode({ onResult }: { onResult: (r: RunScanResult) => void }) {
           </label>
         </Banner>
       )}
+      {status && <Banner tone="info">{status}</Banner>}
       {error && <Banner tone="bad">{error}</Banner>}
       <div>
         <Button type="submit" variant="primary" leading={IconPlay} loading={busy} disabled={busy}>
